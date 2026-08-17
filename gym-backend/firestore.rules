@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// SECURITY MODEL: every read/write from an end-user device is denied. The FastAPI backend is the
+// only thing that ever touches these collections, and it connects with the Admin SDK using a
+// service account key — the Admin SDK bypasses these rules entirely by design. So this file's
+// only job is to make sure that if someone points the Firebase Web/Flutter SDK straight at this
+// project (bypassing the API), Firestore refuses them. Firebase Auth itself is NOT covered by
+// this file (that's a separate product) — the Flutter app signs in against Firebase Auth
+// directly, which is fine; it just can't read/write Firestore directly.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

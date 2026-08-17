@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app/main.py": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "ENV": "production",
+    "CORS_ORIGINS": "https://store8-tech.web.app",
+    "FIREBASE_STORAGE_BUCKET": "store8-tech.firebasestorage.app"
+  }
+}

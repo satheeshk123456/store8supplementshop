@@ -1,0 +1,16 @@
+rules_version = '2';
+
+// Same security model as firestore.rules: every read/write from an end-user device (website,
+// Flutter app talking to Storage directly, anyone poking at the bucket from a browser console)
+// is denied. The FastAPI backend is the only writer, and it connects with the Admin SDK using
+// a service account key, which bypasses these rules entirely by design. Uploaded product photos
+// are still viewable by everyone because the backend calls blob.make_public() at upload time
+// (see app/storage_client.py) — that grants read access via the object's own ACL, which is a
+// separate mechanism from these rules and is what the storefront's <img> tags rely on.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

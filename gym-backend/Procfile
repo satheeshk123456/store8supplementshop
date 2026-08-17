@@ -1,0 +1,4 @@
+# Not used by Vercel (see README.md's "Deploying to Vercel" section — vercel.json handles that).
+# Kept in case you ever want to run this on a traditional always-on host (Render, Railway,
+# Fly.io, your own VPS) instead — those platforms read this file automatically.
+web: gunicorn app.main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 60

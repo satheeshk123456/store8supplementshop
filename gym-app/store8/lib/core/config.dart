@@ -1,0 +1,18 @@
+/// Nothing here is hardcoded — the backend URL is passed in at build/run time so the same
+/// code works for local dev, staging and production without editing source.
+///
+/// Run with:
+///   flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000        (Android emulator -> localhost)
+///   flutter run --dart-define=API_BASE_URL=https://gym-backend-sand.vercel.app
+/// Or build with:
+///   flutter build apk --dart-define=API_BASE_URL=https://gym-backend-sand.vercel.app
+class AppConfig {
+  static const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8000',
+  );
+
+  /// Only needed if you build this app for the web (Firebase Web Push requires it) — see
+  /// SETUP.md step 4. Android/iOS ignore this entirely.
+  static const fcmVapidKey = String.fromEnvironment('FCM_VAPID_KEY');
+}
