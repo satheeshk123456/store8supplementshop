@@ -12,6 +12,7 @@ class VariantDraft {
   final TextEditingController valueCtrl;
   final TextEditingController priceCtrl;
   final TextEditingController mrpCtrl;
+  final TextEditingController offerPriceCtrl;
   final TextEditingController stockCtrl;
   final TextEditingController skuCtrl;
   bool isActive;
@@ -22,12 +23,14 @@ class VariantDraft {
     String value = '',
     String price = '',
     String mrp = '',
+    String offerPrice = '',
     String stock = '0',
     String sku = '',
     this.isActive = true,
   })  : valueCtrl = TextEditingController(text: value),
         priceCtrl = TextEditingController(text: price),
         mrpCtrl = TextEditingController(text: mrp),
+        offerPriceCtrl = TextEditingController(text: offerPrice),
         stockCtrl = TextEditingController(text: stock),
         skuCtrl = TextEditingController(text: sku);
 
@@ -37,6 +40,7 @@ class VariantDraft {
         value: _trimNum(v.value),
         price: _trimNum(v.price),
         mrp: v.mrp == null ? '' : _trimNum(v.mrp!),
+        offerPrice: v.offerPrice == null ? '' : _trimNum(v.offerPrice!),
         stock: v.stockQty.toString(),
         sku: v.sku,
         isActive: v.isActive,
@@ -49,6 +53,7 @@ class VariantDraft {
     final value = num.tryParse(valueCtrl.text.trim());
     final price = double.tryParse(priceCtrl.text.trim());
     if (value == null || value <= 0 || price == null || price < 0) return null;
+    final offerPrice = offerPriceCtrl.text.trim().isEmpty ? null : double.tryParse(offerPriceCtrl.text.trim());
     return Variant(
       id: '',
       unit: unit,
@@ -56,6 +61,7 @@ class VariantDraft {
       label: '',
       mrp: mrpCtrl.text.trim().isEmpty ? null : double.tryParse(mrpCtrl.text.trim()),
       price: price,
+      offerPrice: offerPrice,
       stockQty: int.tryParse(stockCtrl.text.trim()) ?? 0,
       sku: skuCtrl.text.trim(),
       isActive: isActive,
@@ -66,6 +72,7 @@ class VariantDraft {
     valueCtrl.dispose();
     priceCtrl.dispose();
     mrpCtrl.dispose();
+    offerPriceCtrl.dispose();
     stockCtrl.dispose();
   }
 }
@@ -172,6 +179,22 @@ class _VariantRowState extends State<_VariantRow> {
                     controller: d.mrpCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(labelText: 'MRP (optional)'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: d.offerPriceCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Offer price (optional)',
+                      helperText: 'Shown struck-through against Price when running a promo',
+                      helperMaxLines: 2,
+                    ),
                   ),
                 ),
               ],

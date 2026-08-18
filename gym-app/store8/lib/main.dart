@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // `hide AuthProvider`: firebase_auth's own package exports a class called AuthProvider (the
 // base type behind EmailAuthProvider/GoogleAuthProvider/etc.) which collides with our app's own
 // AuthProvider (features/auth/auth_provider.dart, our login/session state) — hiding theirs since
@@ -22,7 +24,18 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // On Android, the google-services Gradle plugin makes the native Firebase SDK
+  // auto-initialize a "[DEFAULT]" app before Dart code ever runs — this happens
+  // even on a fresh cold start, before Firebase.apps (Dart-side) knows about it.
+  // Calling initializeApp() then throws core/duplicate-app; that's expected and
+  // safe to ignore since the native default app is already configured correctly
+  // from google-services.json.
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+  }
 
   // Must be registered before runApp so Android can wake this isolate for a push that arrives
   // while the app is fully closed.
@@ -32,9 +45,14 @@ Future<void> main() async {
     tokenProvider: () => FirebaseAuth.instance.currentUser?.getIdToken() ?? Future.value(null),
   );
   final notificationService = NotificationService(apiClient);
-  await notificationService.init();
 
+  // Paint the app immediately instead of awaiting this — on Android 13+, init() blocks on the
+  // system notification-permission dialog (_messaging.requestPermission), and if that dialog is
+  // slow to render (or the screen was off/locked at cold start), the user was stuck staring at
+  // the bare native splash background indefinitely with nothing ever drawn. Firing it after
+  // runApp() means the real UI is already visible underneath whenever that dialog does appear.
   runApp(Store8AdminApp(apiClient: apiClient, notificationService: notificationService));
+  unawaited(notificationService.init());
 }
 
 class Store8AdminApp extends StatefulWidget {

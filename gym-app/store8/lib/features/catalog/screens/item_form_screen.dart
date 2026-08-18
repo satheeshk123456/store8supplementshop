@@ -24,6 +24,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   late final TextEditingController _title;
   late final TextEditingController _flavor;
   late final TextEditingController _description;
+  late final TextEditingController _ingredients;
+  late final TextEditingController _benefits;
+  late final TextEditingController _usage;
   String? _productId;
   String? _brandId;
   List<String> _images = [];
@@ -43,6 +46,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     _title = TextEditingController(text: e?.title ?? '');
     _flavor = TextEditingController(text: e?.flavor ?? '');
     _description = TextEditingController(text: e?.description ?? '');
+    _ingredients = TextEditingController(text: e?.ingredients ?? '');
+    _benefits = TextEditingController(text: e?.benefits ?? '');
+    _usage = TextEditingController(text: e?.usage ?? '');
     _productId = e?.productId ?? widget.initialProductId;
     _brandId = e?.brandId;
     _images = List.from(e?.images ?? const []);
@@ -58,6 +64,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     _title.dispose();
     _flavor.dispose();
     _description.dispose();
+    _ingredients.dispose();
+    _benefits.dispose();
+    _usage.dispose();
     for (final v in _variants) {
       v.dispose();
     }
@@ -126,6 +135,9 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         title: _title.text.trim(),
         flavor: _flavor.text.trim(),
         description: _description.text.trim(),
+        ingredients: _ingredients.text.trim(),
+        benefits: _benefits.text.trim(),
+        usage: _usage.text.trim(),
         images: _images,
         variants: variants,
         isActive: _active,
@@ -182,6 +194,24 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
             controller: _description,
             maxLines: 3,
             decoration: const InputDecoration(labelText: 'Description (optional)'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _ingredients,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Ingredients (optional)'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _benefits,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Benefits (optional)'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _usage,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Usage / how to use (optional)'),
           ),
           const SizedBox(height: 20),
           const Text('Photos', style: TextStyle(fontWeight: FontWeight.w700)),

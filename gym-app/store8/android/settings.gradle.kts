@@ -19,7 +19,7 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "8.11.1" apply false
+    id("com.android.application") version "8.13.0" apply false
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
     // Reads android/app/google-services.json (see ../../../SETUP.md) to wire this app to Firebase.
     id("com.google.gms.google-services") version "4.5.0" apply false

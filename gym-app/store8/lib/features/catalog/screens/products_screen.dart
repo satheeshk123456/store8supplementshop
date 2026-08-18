@@ -39,7 +39,10 @@ class ProductsScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (_) => ItemsScreen(product: p)),
                     ),
                     title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: Text('$itemCount brand listing(s) · sold by ${p.unitKind.name}'),
+                    subtitle: Text(
+                      '$itemCount brand listing(s) · sold by ${p.unitKind.name}'
+                      '${p.subcategory.isEmpty ? "" : " · ${p.subcategory}"}',
+                    ),
                     trailing: PopupMenuButton<String>(
                       onSelected: (action) async {
                         if (action == 'edit') {
