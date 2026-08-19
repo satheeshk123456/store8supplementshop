@@ -57,6 +57,8 @@ def notify_admins_new_order(order_id: str, order_number: str, total_amount: floa
     for token, result in zip(tokens, response.responses):
         if not result.success:
             code = getattr(result.exception, "code", "")
+            msg = getattr(result.exception, "message", str(result.exception))
+            logger.warning("FCM failure for token %s...: code=%s message=%s", token[:12], code, msg)
             if code in ("NOT_FOUND", "UNREGISTERED", "INVALID_ARGUMENT"):
                 stale.append(token)
     for token in stale:
