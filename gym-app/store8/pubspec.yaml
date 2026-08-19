@@ -67,9 +67,9 @@ flutter_launcher_icons:
 # Run once after `flutter pub get` to generate the native (pre-Flutter-engine) launch screen:
 #   dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#0B0B0B"
+  color: "#F4F4F4"
   image: "assets/branding/logo_mark.png"
   android_12:
-    color: "#0B0B0B"
+    color: "#F4F4F4"
     image: "assets/branding/logo_mark.png"
   web: false

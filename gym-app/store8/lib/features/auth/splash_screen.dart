@@ -22,9 +22,13 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _videoReady = false;
   bool _videoFailed = false;
 
-  // Hard backstop: if the video never loads/finishes for any reason (bad codec, missing
-  // asset, slow device), the app must not get stuck on splash forever.
-  static const _maxSplashWait = Duration(seconds: 12);
+  // Splash is intentionally kept short — a brief brand flash, not the full clip. We cap it at
+  // _maxSplashShow regardless of the source video's actual length (the video itself just plays
+  // underneath and gets cut off when we navigate away).
+  static const _maxSplashShow = Duration(seconds: 2);
+  // Hard backstop: if the video never loads for any reason (bad codec, missing asset, slow
+  // device), the app must not get stuck on splash forever.
+  static const _maxSplashWait = Duration(seconds: 5);
   Timer? _safetyTimer;
 
   @override
@@ -41,9 +45,9 @@ class _SplashScreenState extends State<SplashScreen> {
             if (!mounted) return;
             setState(() => _videoReady = true);
             await _controller.play();
-            // Wait out the full clip before letting the router move on, regardless of how
-            // quickly Firebase auth resolves.
-            await Future.delayed(_controller.value.duration);
+            // Move on after the short cap above instead of the full clip duration, so the
+            // splash feels quick regardless of how long the source video actually is.
+            await Future.delayed(_maxSplashShow);
             _finishIntro();
           })
           .catchError((_) {
@@ -69,15 +73,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      // Matches the splash video's own background (sampled from the clip: ~#F4F4F4) so there's
+      // no visible seam/border around the video box.
+      backgroundColor: const Color(0xFFF4F4F4),
       body: Stack(
         fit: StackFit.expand,
         children: [
           if (_videoReady)
+            // Small centered box, like a logo — not full-screen. Width is capped so it reads as
+            // a brand mark in the middle of the screen instead of a full video background.
             Center(
-              child: AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
+              child: SizedBox(
+                width: 220,
+                child: AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                ),
               ),
             )
           else if (_videoFailed)
@@ -90,14 +101,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.gold),
               ),
             ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 64,
-            child: Center(
-              child: Image.asset('assets/branding/logo.jpeg', width: 160, fit: BoxFit.contain),
-            ),
-          ),
         ],
       ),
     );
