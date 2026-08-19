@@ -14,9 +14,17 @@ Usage:
     python seed.py                      # seed categories + brands + products + sample items
     python seed.py --catalog-only       # skip sample items, just categories/brands/products
     python seed.py --admin <uid> <email> <name>   # grant an existing Firebase Auth user admin access
+    python seed.py --create-admin <email> <password> [name]
+        # creates a NEW Firebase Auth user with that email/password (or reuses it if the email
+        # already exists) and grants it admin access in one step — no need to touch the Firebase
+        # Console. <email> must be a real email address format (e.g. admin@yourdomain.com);
+        # Firebase Auth rejects bare usernames like "admin". <password> must be 6+ characters.
 """
 import argparse
+import re
 import sys
+
+from firebase_admin import auth
 
 from app.firebase import init_firebase, get_db, firestore
 from app.utils import short_id, slugify
@@ -263,10 +271,41 @@ def grant_admin(db, uid: str, email: str, name: str):
     print(f"admins: granted admin access to {email} (uid={uid})")
 
 
+def create_admin(db, email: str, password: str, name: str):
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        print(
+            f"'{email}' doesn't look like a real email address — Firebase Auth requires a "
+            "proper email format (e.g. admin@yourdomain.com), not a bare username like 'admin'.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if len(password) < 6:
+        print("Password must be at least 6 characters (Firebase Auth's minimum).", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        user = auth.get_user_by_email(email)
+        auth.update_user(user.uid, password=password, display_name=name)
+        print(f"auth: user {email} already existed (uid={user.uid}) — password/name updated")
+    except auth.UserNotFoundError:
+        user = auth.create_user(email=email, password=password, display_name=name)
+        print(f"auth: created new user {email} (uid={user.uid})")
+
+    grant_admin(db, user.uid, email, name)
+    print(f"\nYou can now log into the admin app with:\n  email:    {email}\n  password: {password}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Seed / inspect Store 8 Firestore data")
     parser.add_argument("--catalog-only", action="store_true", help="Skip sample brand-items")
     parser.add_argument("--admin", nargs=3, metavar=("UID", "EMAIL", "NAME"), help="Grant admin access to a Firebase Auth uid")
+    parser.add_argument(
+        "--create-admin",
+        nargs="+",
+        metavar=("EMAIL", "PASSWORD"),
+        help="Create (or update) a Firebase Auth user with EMAIL/PASSWORD and grant it admin access. "
+        "Optional third value is the display name (defaults to 'Admin').",
+    )
     args = parser.parse_args()
 
     init_firebase()
@@ -274,6 +313,14 @@ def main():
 
     if args.admin:
         grant_admin(db, *args.admin)
+        return
+
+    if args.create_admin:
+        if len(args.create_admin) not in (2, 3):
+            parser.error("--create-admin takes EMAIL PASSWORD [NAME]")
+        email, password = args.create_admin[0], args.create_admin[1]
+        name = args.create_admin[2] if len(args.create_admin) == 3 else "Admin"
+        create_admin(db, email, password, name)
         return
 
     seed_categories(db)

@@ -40,6 +40,18 @@ class AuthProvider extends ChangeNotifier {
   String? errorMessage;
   bool isBusy = false;
 
+  /// Firebase auth state often resolves in milliseconds, which would otherwise skip straight
+  /// past the splash video. The router (see core/router.dart) also waits on this flag before
+  /// leaving /splash — the splash screen calls completeIntro() once its video has finished (or
+  /// timed out), and only then does the real login/dashboard redirect happen.
+  bool introComplete = false;
+
+  void completeIntro() {
+    if (introComplete) return;
+    introComplete = true;
+    notifyListeners();
+  }
+
   Future<String?> getIdToken() => _auth.currentUser?.getIdToken() ?? Future.value(null);
 
   Future<void> _onAuthStateChanged(User? user) async {

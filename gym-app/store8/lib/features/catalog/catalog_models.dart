@@ -75,6 +75,9 @@ class Product {
   final String id;
   final String name;
   final List<String> categoryIds;
+  // Free-text grouping shown within a category page (e.g. "Protein Powders" inside "Muscle
+  // Building & Protein") — optional, matches app/schemas.py's ProductIn.subcategory.
+  final String subcategory;
   final String description;
   final UnitKind unitKind;
   final bool isActive;
@@ -83,6 +86,7 @@ class Product {
     required this.id,
     required this.name,
     required this.categoryIds,
+    this.subcategory = '',
     required this.description,
     required this.unitKind,
     required this.isActive,
@@ -92,6 +96,7 @@ class Product {
         id: j['id'] ?? '',
         name: j['name'] ?? '',
         categoryIds: List<String>.from(j['category_ids'] ?? const []),
+        subcategory: j['subcategory'] ?? '',
         description: j['description'] ?? '',
         unitKind: unitKindFromString(j['unit_kind'] ?? 'weight'),
         isActive: j['is_active'] ?? true,
@@ -100,6 +105,7 @@ class Product {
   Map<String, dynamic> toJson() => {
         'name': name,
         'category_ids': categoryIds,
+        'subcategory': subcategory,
         'description': description,
         'unit_kind': unitKind.name,
         'is_active': isActive,
@@ -113,6 +119,9 @@ class Variant {
   final String label;
   final double? mrp;
   final double price;
+  // Optional promotional price, shown struck-through against `price` on the storefront when
+  // set and lower than it — mirrors app/schemas.py's VariantIn.offer_price.
+  final double? offerPrice;
   final int stockQty;
   final String sku;
   final bool isActive;
@@ -124,6 +133,7 @@ class Variant {
     required this.label,
     required this.mrp,
     required this.price,
+    this.offerPrice,
     required this.stockQty,
     required this.sku,
     required this.isActive,
@@ -136,6 +146,7 @@ class Variant {
         label: j['label'] ?? '',
         mrp: (j['mrp'] as num?)?.toDouble(),
         price: (j['price'] as num?)?.toDouble() ?? 0,
+        offerPrice: (j['offer_price'] as num?)?.toDouble(),
         stockQty: j['stock_qty'] ?? 0,
         sku: j['sku'] ?? '',
         isActive: j['is_active'] ?? true,
@@ -146,6 +157,7 @@ class Variant {
         'value': value,
         'mrp': mrp,
         'price': price,
+        'offer_price': offerPrice,
         'stock_qty': stockQty,
         'sku': sku,
         'is_active': isActive,
@@ -159,6 +171,10 @@ class Item {
   final String title;
   final String flavor;
   final String description;
+  // Free-text, optional — filled in gradually per listing, matches app/schemas.py's Item.
+  final String ingredients;
+  final String benefits;
+  final String usage;
   final List<String> images;
   final List<Variant> variants;
   final bool isActive;
@@ -173,6 +189,9 @@ class Item {
     required this.title,
     required this.flavor,
     required this.description,
+    this.ingredients = '',
+    this.benefits = '',
+    this.usage = '',
     required this.images,
     required this.variants,
     required this.isActive,
@@ -188,6 +207,9 @@ class Item {
         title: j['title'] ?? '',
         flavor: j['flavor'] ?? '',
         description: j['description'] ?? '',
+        ingredients: j['ingredients'] ?? '',
+        benefits: j['benefits'] ?? '',
+        usage: j['usage'] ?? '',
         images: List<String>.from(j['images'] ?? const []),
         variants: (j['variants'] as List? ?? const [])
             .map((v) => Variant.fromJson(Map<String, dynamic>.from(v)))
@@ -204,6 +226,9 @@ class Item {
         'title': title,
         'flavor': flavor,
         'description': description,
+        'ingredients': ingredients,
+        'benefits': benefits,
+        'usage': usage,
         'images': images,
         'variants': variants.map((v) => v.toJson()).toList(),
         'is_active': isActive,

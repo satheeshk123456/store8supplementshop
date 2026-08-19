@@ -18,6 +18,7 @@ class ProductFormScreen extends StatefulWidget {
 class _ProductFormScreenState extends State<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
+  late final TextEditingController _subcategory;
   late final TextEditingController _description;
   late Set<String> _categoryIds;
   late UnitKind _unitKind;
@@ -32,6 +33,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.initState();
     final e = _existing;
     _name = TextEditingController(text: e?.name ?? '');
+    _subcategory = TextEditingController(text: e?.subcategory ?? '');
     _description = TextEditingController(text: e?.description ?? '');
     _categoryIds = (e?.categoryIds ?? (widget.initialCategoryId != null ? [widget.initialCategoryId!] : []))
         .toSet();
@@ -42,6 +44,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _subcategory.dispose();
     _description.dispose();
     super.dispose();
   }
@@ -58,6 +61,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         id: widget.productId ?? '',
         name: _name.text.trim(),
         categoryIds: _categoryIds.toList(),
+        subcategory: _subcategory.text.trim(),
         description: _description.text.trim(),
         unitKind: _unitKind,
         isActive: _active,
@@ -86,6 +90,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               controller: _name,
               decoration: const InputDecoration(labelText: 'Product name (e.g. Whey Protein)'),
               validator: (v) => (v == null || v.trim().length < 2) ? 'Enter a product name' : null,
+            ),
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: _subcategory,
+              decoration: const InputDecoration(
+                labelText: 'Subcategory (optional, e.g. "Protein Powders")',
+              ),
             ),
             const SizedBox(height: 14),
             TextFormField(
