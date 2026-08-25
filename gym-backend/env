@@ -1,0 +1,21 @@
+# Local dev env. NEVER commit this file — it is already in .gitignore.
+
+# ---- App ----
+ENV=development                      # development | production
+APP_NAME=Store 8 Supplement Shop API
+# Comma-separated list of origins allowed to call this API.
+# Add your deployed website URL here once you have a domain.
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+
+# ---- Firebase ----
+# Local dev: reads the service account file directly (placed at secrets/firebase-service-account.json).
+FIREBASE_SERVICE_ACCOUNT_FILE=./secrets/firebase-service-account.json
+# Only needed for hosts with no persistent disk (Vercel prod) — see gym-backend/README.md.
+FIREBASE_SERVICE_ACCOUNT_B64=
+FIREBASE_STORAGE_BUCKET=store-8-tech.firebasestorage.app
+
+# ---- Security ----
+SECRET_KEY=4B8tu42hIwVrbo_rl0-TnVbo8lKDgD63fNBvQWHXO-5NrFvnQNS4pZfXoOZpLUpD
+
+# Requests/minute allowed per IP on the public order endpoint (abuse protection).
+ORDER_RATE_LIMIT=6/minute
