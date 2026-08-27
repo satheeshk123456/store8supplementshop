@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { createOrder } from '../api/orders'
 import { formatInr } from '../utils/format'
+import { rememberOrder } from '../utils/myOrdersStorage'
 
 const EMPTY_FORM = { name: '', phone: '', address: '', city: '', pincode: '', note: '' }
 
@@ -34,6 +35,7 @@ export default function Checkout() {
         lines: lines.map((l) => ({ item_id: l.itemId, variant_id: l.variantId, qty: l.qty })),
       })
       clear()
+      rememberOrder(order.order_number, form.phone.trim())
       navigate(`/order-confirmed/${order.id}`, { state: { order } })
     } catch (err) {
       setApiError(err.message || 'Could not place your order. Please try again.')

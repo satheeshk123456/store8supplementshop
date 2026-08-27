@@ -1,14 +1,14 @@
 // Presentational only — falls back to a generic icon for any category slug we don't
 // recognise yet, so a new category added from the admin app never breaks the UI.
 const ICONS = {
+  'muscle-protein': '💪',
   'weight-gain': '🏋️',
-  'muscle-building': '💪',
+  'performance-workout': '⚡',
   'fat-loss': '🔥',
-  'strength-performance': '⚡',
-  'recovery-endurance': '🔄',
+  'healthy-foods': '🥗',
   'general-health': '💊',
-  'organ-digestive': '🌿',
-  'beauty-bone-sleep': '✨',
+  'beauty-skin-recovery': '✨',
+  'overall-health': '🌿',
   default: '🏪',
 }
 

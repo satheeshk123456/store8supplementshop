@@ -34,9 +34,6 @@ dependencies:
   google_fonts: ^6.3.0
   intl: ^0.20.2
 
-  # Splash video
-  video_player: ^2.9.5
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -67,9 +64,9 @@ flutter_launcher_icons:
 # Run once after `flutter pub get` to generate the native (pre-Flutter-engine) launch screen:
 #   dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#F4F4F4"
+  color: "#0B0B0B"
   image: "assets/branding/logo_mark.png"
   android_12:
-    color: "#F4F4F4"
+    color: "#0B0B0B"
     image: "assets/branding/logo_mark.png"
   web: false

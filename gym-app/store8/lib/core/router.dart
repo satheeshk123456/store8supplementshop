@@ -17,7 +17,6 @@ GoRouter buildRouter(AuthProvider auth) {
     redirect: (context, state) {
       final loggingIn = state.matchedLocation == '/login';
       final onSplash = state.matchedLocation == '/splash';
-      if (!auth.introComplete) return onSplash ? null : '/splash';
       if (auth.status == AuthStatus.unknown) return onSplash ? null : '/splash';
       if (auth.status == AuthStatus.unauthenticated) return loggingIn ? null : '/login';
       if (auth.status == AuthStatus.authenticated && (loggingIn || onSplash)) return '/dashboard';

@@ -20,9 +20,16 @@ class _DashboardShellState extends State<DashboardShell> {
   @override
   void initState() {
     super.initState();
-    final orders = context.read<OrdersProvider>();
-    orders.refresh();
-    orders.startPolling();
+    // Defer to after this frame finishes building — calling refresh() (which calls
+    // notifyListeners() synchronously before its first await) directly in initState fires while
+    // the widget tree is still mid-build, which is what throws "setState() or markNeedsBuild()
+    // called during build" whenever some other widget up the tree is watching OrdersProvider.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final orders = context.read<OrdersProvider>();
+      orders.refresh();
+      orders.startPolling();
+    });
   }
 
   @override
