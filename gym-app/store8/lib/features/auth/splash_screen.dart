@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
   // Splash is intentionally kept short — a brief brand flash, not the full clip. We cap it at
   // _maxSplashShow regardless of the source video's actual length (the video itself just plays
   // underneath and gets cut off when we navigate away).
-  static const _maxSplashShow = Duration(seconds: 2);
+  static const _maxSplashShow = Duration(seconds: 3);
   // Hard backstop: if the video never loads for any reason (bad codec, missing asset, slow
   // device), the app must not get stuck on splash forever.
   static const _maxSplashWait = Duration(seconds: 5);

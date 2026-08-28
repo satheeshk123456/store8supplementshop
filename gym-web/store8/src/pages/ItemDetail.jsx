@@ -6,6 +6,10 @@ import { Loading, ErrorState } from '../components/StateViews'
 import { formatInr } from '../utils/format'
 import { useCart } from '../context/CartContext'
 
+function effectivePrice(v) {
+  return v.offer_price != null && v.offer_price < v.price ? v.offer_price : v.price
+}
+
 export default function ItemDetail() {
   const { itemId } = useParams()
   const navigate = useNavigate()
@@ -35,6 +39,8 @@ export default function ItemDetail() {
 
   const variant = item.variants.find((v) => v.id === selectedVariantId)
   const maxQty = variant ? Math.min(variant.stock_qty, 20) : 0
+  const price = variant ? effectivePrice(variant) : 0
+  const onOffer = variant ? price < variant.price : false
 
   function handleAddToCart() {
     if (!variant || variant.stock_qty <= 0) return
@@ -45,7 +51,7 @@ export default function ItemDetail() {
       brandName: item.brand_name,
       variantLabel: variant.label,
       unit: variant.unit,
-      price: variant.price,
+      price,
       image: item.images?.[0] || '',
       qty,
     })
@@ -84,22 +90,33 @@ export default function ItemDetail() {
             <div className="variant-grid">
               {item.variants
                 .filter((v) => v.is_active)
-                .map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    className={`variant-pill ${v.id === selectedVariantId ? 'selected' : ''}`}
-                    disabled={v.stock_qty <= 0}
-                    onClick={() => {
-                      setSelectedVariantId(v.id)
-                      setQty(1)
-                    }}
-                  >
-                    {v.label}
-                    <span className="v-price">{formatInr(v.price)}</span>
-                    <span className="v-stock">{v.stock_qty > 0 ? `${v.stock_qty} in stock` : 'Out of stock'}</span>
-                  </button>
-                ))}
+                .map((v) => {
+                  const vPrice = effectivePrice(v)
+                  const vOnOffer = vPrice < v.price
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      className={`variant-pill ${v.id === selectedVariantId ? 'selected' : ''}`}
+                      disabled={v.stock_qty <= 0}
+                      onClick={() => {
+                        setSelectedVariantId(v.id)
+                        setQty(1)
+                      }}
+                    >
+                      {v.label}
+                      <span className="v-price">
+                        {formatInr(vPrice)}
+                        {vOnOffer && (
+                          <span className="mrp" style={{ marginLeft: 6 }}>
+                            {formatInr(v.price)}
+                          </span>
+                        )}
+                      </span>
+                      <span className="v-stock">{v.stock_qty > 0 ? `${v.stock_qty} in stock` : 'Out of stock'}</span>
+                    </button>
+                  )
+                })}
             </div>
 
             {variant && (
@@ -114,7 +131,14 @@ export default function ItemDetail() {
                       +
                     </button>
                   </div>
-                  <strong>{formatInr(variant.price * qty)}</strong>
+                  <strong>
+                    {formatInr(price * qty)}
+                    {onOffer && (
+                      <span className="mrp" style={{ marginLeft: 8 }}>
+                        {formatInr(variant.price * qty)}
+                      </span>
+                    )}
+                  </strong>
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>

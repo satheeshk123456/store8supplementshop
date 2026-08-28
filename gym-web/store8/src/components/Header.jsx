@@ -15,6 +15,15 @@ export default function Header() {
           </span>
         </Link>
         <div className="header-actions">
+          <Link to="/search" className="icon-btn" aria-label="Search">
+            🔍
+          </Link>
+          <Link to="/brands" className="header-link">
+            Brands
+          </Link>
+          <Link to="/my-orders" className="header-link">
+            My Orders
+          </Link>
           <Link to="/cart" className="cart-link" aria-label="Cart">
             <span>🛒</span>
             <span>Cart</span>

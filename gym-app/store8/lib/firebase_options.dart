@@ -32,20 +32,20 @@ class DefaultFirebaseOptions {
   }
 
   static const web = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_flutterfire_configure',
-    appId: 'REPLACE_WITH_flutterfire_configure',
-    messagingSenderId: 'REPLACE_WITH_flutterfire_configure',
-    projectId: 'REPLACE_WITH_flutterfire_configure',
-    authDomain: 'REPLACE_WITH_flutterfire_configure',
-    storageBucket: 'REPLACE_WITH_flutterfire_configure',
+    apiKey: 'AIzaSyDJxvtubYvv0bjdnPSL2NAp4iHl8NWSyWI',
+    appId: '1:326403588670:web:640f151c0420f47b78876f',
+    messagingSenderId: '326403588670',
+    projectId: 'store-8-tech',
+    authDomain: 'store-8-tech.firebaseapp.com',
+    storageBucket: 'store-8-tech.firebasestorage.app',
   );
 
   static const android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_flutterfire_configure',
-    appId: 'REPLACE_WITH_flutterfire_configure',
-    messagingSenderId: 'REPLACE_WITH_flutterfire_configure',
-    projectId: 'REPLACE_WITH_flutterfire_configure',
-    storageBucket: 'REPLACE_WITH_flutterfire_configure',
+    apiKey: 'AIzaSyDr6OI1cnhed9_y0eDPaOJZXxILIWj8vrU',
+    appId: '1:326403588670:android:c8b798e88bcbd04778876f',
+    messagingSenderId: '326403588670',
+    projectId: 'store-8-tech',
+    storageBucket: 'store-8-tech.firebasestorage.app',
   );
 
   static const ios = FirebaseOptions(

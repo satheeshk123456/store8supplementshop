@@ -20,6 +20,10 @@ export default function OrderConfirmation() {
             Save this page or a screenshot of your confirmation — refreshing clears the detailed
             summary for your privacy. The shop has been notified and will contact you shortly.
           </p>
+          <p style={{ color: 'var(--text-muted)' }}>
+            This order is saved under <Link to="/my-orders" style={{ color: 'var(--gold-light)' }}>My Orders</Link> on
+            this device, where you can check its current status any time.
+          </p>
           <Link to="/" className="btn btn-gold">
             Continue shopping
           </Link>
@@ -52,6 +56,11 @@ export default function OrderConfirmation() {
             <span>{formatInr(order.total_amount)}</span>
           </div>
         </div>
+
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          You can check this order's current status any time under{' '}
+          <Link to="/my-orders" style={{ color: 'var(--gold-light)' }}>My Orders</Link>.
+        </p>
 
         <Link to="/" className="btn btn-gold">
           Continue shopping

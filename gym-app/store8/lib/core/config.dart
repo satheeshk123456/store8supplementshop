@@ -9,7 +9,7 @@
 class AppConfig {
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://gym-backend-sand.vercel.app',
+    defaultValue: 'https://gymbackendorg.vercel.app',
   );
 
   /// Only needed if you build this app for the web (Firebase Web Push requires it) — see

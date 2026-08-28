@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "991651598337",
-    "project_id": "store8-tech",
-    "storage_bucket": "store8-tech.firebasestorage.app"
+    "project_number": "326403588670",
+    "project_id": "store-8-tech",
+    "storage_bucket": "store-8-tech.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:991651598337:android:272f938d3ef20edd0d3000",
+        "mobilesdk_app_id": "1:326403588670:android:c8b798e88bcbd04778876f",
         "android_client_info": {
           "package_name": "com.example.store8"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBGnx3MBwJtF-Em8wUXnPhYeAsS4E238qw"
+          "current_key": "AIzaSyDr6OI1cnhed9_y0eDPaOJZXxILIWj8vrU"
         }
       ],
       "services": {

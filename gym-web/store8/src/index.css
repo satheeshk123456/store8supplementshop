@@ -126,6 +126,26 @@ button { font-family: inherit; cursor: pointer; }
   }
 }
 .header-actions { display: flex; align-items: center; gap: 14px; }
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  font-size: 1rem;
+}
+.header-link {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.header-link:hover { color: var(--gold-light); }
+@media (min-width: 640px) {
+  .header-link { display: inline-flex; }
+}
 .cart-link {
   position: relative;
   display: flex;
@@ -202,6 +222,20 @@ button { font-family: inherit; cursor: pointer; }
 .breadcrumb a { color: var(--gold-light); }
 .breadcrumb span { margin: 0 6px; }
 
+.search-input {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  margin-bottom: 24px;
+}
+.search-input:focus { outline: none; border-color: var(--gold); }
+
 /* ---------- Grids & cards ---------- */
 .grid {
   display: grid;
@@ -255,7 +289,10 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 800;
   color: var(--ink);
 }
-.card-price .mrp { font-weight: 500; color: var(--ink-muted); text-decoration: line-through; font-size: 0.82rem; }
+/* Generic struck-through "was" price — used on light card backgrounds and on the dark
+   item-detail page alike, so it's colour-agnostic (currentColor + opacity) by default. */
+.mrp { text-decoration: line-through; font-weight: 500; opacity: 0.6; font-size: 0.85em; }
+.card-price .mrp { color: var(--ink-muted); font-size: 0.82rem; opacity: 1; }
 
 /* Category card variant (icon based) */
 .category-card { text-align: center; padding: 26px 14px; }
@@ -389,6 +426,36 @@ button { font-family: inherit; cursor: pointer; }
 .footer-grid h4 { color: var(--gold-light); margin: 0 0 10px; font-size: 0.95rem; }
 .footer-grid p, .footer-grid a { display: block; margin: 4px 0; }
 .footer-bottom { text-align: center; margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.8rem; }
+
+/* ---------- Homepage contact/location card ---------- */
+.contact-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+}
+.contact-card p { color: var(--text-muted); margin: 0 0 16px; }
+.contact-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- WhatsApp floating button ---------- */
+.whatsapp-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 90;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #05270f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease;
+}
+.whatsapp-fab:hover { transform: scale(1.06); }
 
 /* ---------- misc ---------- */
 .badge-success { color: var(--success); }
