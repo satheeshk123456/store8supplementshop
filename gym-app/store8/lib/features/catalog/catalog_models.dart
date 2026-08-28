@@ -175,6 +175,10 @@ class Item {
   final String ingredients;
   final String benefits;
   final String usage;
+  // Reassures customers this isn't a grey-market import (e.g. "Sealed & sourced directly from
+  // Optimum Nutrition India") and any safety notes (e.g. "Consult a physician if pregnant").
+  final String authenticityInfo;
+  final String warnings;
   final List<String> images;
   final List<Variant> variants;
   final bool isActive;
@@ -192,6 +196,8 @@ class Item {
     this.ingredients = '',
     this.benefits = '',
     this.usage = '',
+    this.authenticityInfo = '',
+    this.warnings = '',
     required this.images,
     required this.variants,
     required this.isActive,
@@ -210,6 +216,8 @@ class Item {
         ingredients: j['ingredients'] ?? '',
         benefits: j['benefits'] ?? '',
         usage: j['usage'] ?? '',
+        authenticityInfo: j['authenticity_info'] ?? '',
+        warnings: j['warnings'] ?? '',
         images: List<String>.from(j['images'] ?? const []),
         variants: (j['variants'] as List? ?? const [])
             .map((v) => Variant.fromJson(Map<String, dynamic>.from(v)))
@@ -229,6 +237,8 @@ class Item {
         'ingredients': ingredients,
         'benefits': benefits,
         'usage': usage,
+        'authenticity_info': authenticityInfo,
+        'warnings': warnings,
         'images': images,
         'variants': variants.map((v) => v.toJson()).toList(),
         'is_active': isActive,

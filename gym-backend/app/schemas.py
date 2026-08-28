@@ -6,7 +6,19 @@ from pydantic import BaseModel, Field, field_validator
 
 UnitKind = Literal["weight", "volume", "count"]
 Unit = Literal["kg", "g", "l", "ml", "capsules", "tablets"]
-OrderStatus = Literal["pending", "confirmed", "packed", "shipped", "delivered", "cancelled"]
+# "stock_issue" is never set directly by an admin action — it's derived automatically whenever
+# any line on the order is marked "unavailable" during the physical-stock check (see
+# admin_set_line_availability in routers/orders.py), and cleared back to "pending" once every
+# line is available again.
+OrderStatus = Literal["pending", "confirmed", "packed", "shipped", "delivered", "cancelled", "stock_issue"]
+# Set by the admin app during the physical-stock check that happens before an order can be
+# confirmed — see WHY_ADMIN_CONFIRMATION in the client brief: website stock and physical-shop
+# stock are the same limited pool, so what showed as available online can still turn out to be
+# sold in person by the time the shop checks.
+LineAvailability = Literal["available", "unavailable"]
+# What the customer picks when a line they ordered is unavailable — see OrderConfirmation /
+# MyOrders on the storefront, which is the only place a guest customer can respond (no login).
+CustomerChoice = Literal["notify_me", "suggest_alternative"]
 
 UNIT_LABELS = {
     "kg": "kg", "g": "g", "l": "L", "ml": "ml", "capsules": "capsules", "tablets": "tablets",
@@ -111,11 +123,17 @@ class ItemIn(BaseModel):
     title: str = Field(default="", max_length=150)
     flavor: str = Field(default="", max_length=60)
     description: str = Field(default="", max_length=1000)
-    # All three optional and free-text on purpose — filled in gradually per product, not
-    # required to create a listing (label/price/stock matter far more for launch than these).
+    # All optional and free-text on purpose — filled in gradually per product, not required to
+    # create a listing (label/price/stock matter far more for launch than these).
     ingredients: str = Field(default="", max_length=2000)
     benefits: str = Field(default="", max_length=2000)
     usage: str = Field(default="", max_length=1000)
+    # e.g. "Sealed & sourced directly from Optimum Nutrition India" — shown on the storefront
+    # to reassure customers this isn't a grey-market import, a common supplement-shopping worry.
+    authenticity_info: str = Field(default="", max_length=1000)
+    # e.g. "Consult a physician before use if pregnant" — shown on the storefront alongside
+    # usage instructions.
+    warnings: str = Field(default="", max_length=1000)
     images: list[str] = Field(default_factory=list)
     variants: list[VariantIn] = Field(default_factory=list)
     is_active: bool = True
@@ -139,6 +157,8 @@ class Item(BaseModel):
     ingredients: str = ""
     benefits: str = ""
     usage: str = ""
+    authenticity_info: str = ""
+    warnings: str = ""
     images: list[str] = Field(default_factory=list)
     variants: list[Variant] = Field(default_factory=list)
     is_active: bool = True
@@ -180,6 +200,29 @@ class OrderCreate(BaseModel):
     lines: list[OrderLineIn] = Field(min_length=1, max_length=50)
 
 
+class OrderLineAlternative(BaseModel):
+    """
+    What the admin fills in on the "Suggest a suitable alternative product with special
+    offers" screen once a customer picks "Suggest an Alternative" for an unavailable line.
+    IMPORTANT (per the client brief): `final_price` is a one-off override for this particular
+    order/customer only — it never changes the common Store 8 Customer Price every visitor sees
+    on the storefront, which lives entirely on the catalog item's own `price`/`mrp` fields.
+    """
+    item_id: str
+    variant_id: str
+    product_name: str
+    brand_name: str
+    variant_label: str
+    # The alternative's own normal Store 8 Customer Price, for reference/display.
+    price: float
+    # Free text describing the discount / combo / gift, if any — admin's call, per order.
+    special_offer: str = ""
+    # What this customer actually pays for the alternative if they accept. Defaults to `price`
+    # when the admin doesn't type an override.
+    final_price: float
+    status: Literal["suggested", "customer_accepted", "customer_declined"] = "suggested"
+
+
 class OrderLine(BaseModel):
     item_id: str
     variant_id: str
@@ -190,6 +233,9 @@ class OrderLine(BaseModel):
     qty: int
     price: float
     subtotal: float
+    availability: LineAvailability = "available"
+    customer_choice: CustomerChoice | None = None
+    alternative: OrderLineAlternative | None = None
 
 
 class Order(BaseModel):
@@ -200,7 +246,11 @@ class Order(BaseModel):
     subtotal: float
     total_amount: float
     status: OrderStatus
+    # "not_required" until the admin has confirmed physical stock and shared a payment link;
+    # "link_shared" once payment_link is set. No online payment gateway exists — the link itself
+    # is shared with the customer over WhatsApp by the admin, outside this system.
     payment_status: str = "not_required"
+    payment_link: str | None = None
     notified: bool = False
     created_at: str | None = None
     updated_at: str | None = None
@@ -208,6 +258,33 @@ class Order(BaseModel):
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
+
+class LineAvailabilityIn(BaseModel):
+    availability: LineAvailability
+
+
+class PaymentLinkIn(BaseModel):
+    payment_link: str = Field(min_length=4, max_length=500)
+
+
+class CustomerChoiceIn(BaseModel):
+    phone: str = Field(min_length=8, max_length=15)
+    choice: CustomerChoice
+
+
+class AlternativeSuggestionIn(BaseModel):
+    """Admin picks a currently-available replacement item/variant from the catalog."""
+    item_id: str
+    variant_id: str
+    special_offer: str = Field(default="", max_length=300)
+    # Leave unset to just charge the alternative's own normal price with no special deal.
+    final_price: float | None = Field(default=None, ge=0)
+
+
+class AlternativeResponseIn(BaseModel):
+    phone: str = Field(min_length=8, max_length=15)
+    accept: bool
 
 
 # ---------- Device tokens ----------

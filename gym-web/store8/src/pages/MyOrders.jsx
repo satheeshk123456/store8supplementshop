@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { trackOrder } from '../api/orders'
+import { respondToAlternative, submitLineChoice, trackOrder } from '../api/orders'
 import { formatInr } from '../utils/format'
 import { forgetOrder, getRememberedOrders, rememberOrder } from '../utils/myOrdersStorage'
 
@@ -10,6 +10,9 @@ const STATUS_LABEL = {
   shipped: 'Shipped',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  // Set automatically once the admin's physical-stock check finds a line that can't be
+  // fulfilled — see the per-line banner below, which is where the customer responds.
+  stock_issue: 'Checking stock',
 }
 
 const STATUS_COLOR = {
@@ -19,6 +22,143 @@ const STATUS_COLOR = {
   shipped: 'var(--gold-light)',
   delivered: 'var(--success)',
   cancelled: 'var(--danger)',
+  stock_issue: 'var(--danger)',
+}
+
+const CHOICE_CONFIRMATION = {
+  notify_me: "Got it — we'll message you on WhatsApp as soon as it's back in stock.",
+  suggest_alternative: "Got it — our team will suggest an alternative on WhatsApp shortly.",
+}
+
+function AlternativeSuggestionCard({ orderNumber, phone, line, onResolved }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [localError, setLocalError] = useState('')
+  const alt = line.alternative
+
+  if (alt.status === 'customer_declined') {
+    return (
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', margin: '4px 0 0' }}>
+        You declined this alternative — our team will follow up with you on WhatsApp.
+      </p>
+    )
+  }
+
+  async function respond(accept) {
+    setSubmitting(true)
+    setLocalError('')
+    try {
+      const updated = await respondToAlternative(orderNumber, line.item_id, line.variant_id, phone, accept)
+      onResolved(updated)
+    } catch (err) {
+      setLocalError(err.message || 'Could not save your response. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        background: 'rgba(212, 175, 55, 0.1)',
+        border: '1px solid rgba(212, 175, 55, 0.35)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        marginTop: 6,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>Suggested alternative</p>
+      <p style={{ margin: '2px 0 0', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>
+        {alt.brand_name} {alt.product_name} ({alt.variant_label})
+      </p>
+      {alt.special_offer && (
+        <p style={{ margin: '4px 0 0', fontSize: '0.82rem', color: 'var(--gold-light)' }}>🎁 {alt.special_offer}</p>
+      )}
+      <p style={{ margin: '4px 0 0', fontSize: '0.95rem', fontWeight: 700 }}>
+        {formatInr(alt.final_price)}
+        {alt.final_price < alt.price && (
+          <span className="mrp" style={{ marginLeft: 6 }}>
+            {formatInr(alt.price)}
+          </span>
+        )}
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+        <button type="button" className="btn btn-sm btn-gold" disabled={submitting} onClick={() => respond(true)}>
+          Confirm this alternative
+        </button>
+        <button type="button" className="btn btn-sm btn-outline" disabled={submitting} onClick={() => respond(false)}>
+          No, thanks
+        </button>
+      </div>
+      {localError && <p className="field-error" style={{ marginTop: 6 }}>{localError}</p>}
+    </div>
+  )
+}
+
+function UnavailableLineBanner({ orderNumber, phone, line, onResolved }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [localError, setLocalError] = useState('')
+
+  if (line.customer_choice === 'suggest_alternative' && line.alternative) {
+    return <AlternativeSuggestionCard orderNumber={orderNumber} phone={phone} line={line} onResolved={onResolved} />
+  }
+
+  if (line.customer_choice) {
+    return (
+      <p style={{ color: 'var(--gold-light)', fontSize: '0.82rem', margin: '4px 0 0' }}>
+        {CHOICE_CONFIRMATION[line.customer_choice] || 'Thanks — we have your response.'}
+      </p>
+    )
+  }
+
+  async function choose(choice) {
+    setSubmitting(true)
+    setLocalError('')
+    try {
+      const updated = await submitLineChoice(orderNumber, line.item_id, line.variant_id, phone, choice)
+      onResolved(updated)
+    } catch (err) {
+      setLocalError(err.message || 'Could not save your response. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        background: 'rgba(224, 82, 82, 0.1)',
+        border: '1px solid rgba(224, 82, 82, 0.35)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        marginTop: 6,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text)' }}>
+        This product is currently unavailable / in transit. It is expected to be available in
+        approximately one week. Would you like us to notify you on WhatsApp when it becomes
+        available?
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+        <button
+          type="button"
+          className="btn btn-sm btn-gold"
+          disabled={submitting}
+          onClick={() => choose('notify_me')}
+        >
+          Notify me
+        </button>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline"
+          disabled={submitting}
+          onClick={() => choose('suggest_alternative')}
+        >
+          Suggest an alternative
+        </button>
+      </div>
+      {localError && <p className="field-error" style={{ marginTop: 6 }}>{localError}</p>}
+    </div>
+  )
 }
 
 function StatusPill({ status }) {
@@ -103,17 +243,49 @@ function OrderRow({ orderNumber, phone, onGone }) {
         </p>
       )}
       {order.items.map((l) => (
-        <div className="summary-row" key={`${l.item_id}-${l.variant_id}`}>
-          <span>
-            {l.brand_name} {l.product_name} ({l.variant_label}) × {l.qty}
-          </span>
-          <span>{formatInr(l.subtotal)}</span>
+        <div key={`${l.item_id}-${l.variant_id}`} style={{ marginBottom: 6 }}>
+          <div className="summary-row">
+            <span>
+              {l.brand_name} {l.product_name} ({l.variant_label}) × {l.qty}
+            </span>
+            <span>{formatInr(l.subtotal)}</span>
+          </div>
+          {l.availability === 'unavailable' && (
+            <UnavailableLineBanner
+              orderNumber={order.order_number}
+              phone={phone}
+              line={l}
+              onResolved={setOrder}
+            />
+          )}
         </div>
       ))}
       <div className="summary-row total">
         <span>Total</span>
         <span>{formatInr(order.total_amount)}</span>
       </div>
+
+      {order.payment_status === 'link_shared' && order.payment_link && (
+        <div
+          style={{
+            marginTop: 12,
+            paddingTop: 12,
+            borderTop: '1px solid rgba(212, 175, 55, 0.2)',
+          }}
+        >
+          <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Your order is confirmed — pay using the link below.
+          </p>
+          <a
+            href={order.payment_link}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-gold btn-sm"
+          >
+            Pay now
+          </a>
+        </div>
+      )}
     </div>
   )
 }

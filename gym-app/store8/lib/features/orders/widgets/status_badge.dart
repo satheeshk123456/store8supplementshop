@@ -15,9 +15,16 @@ Color statusColor(String status) {
       return AppColors.success;
     case 'cancelled':
       return AppColors.danger;
+    case 'stock_issue':
+      return AppColors.danger;
     default:
       return AppColors.textMuted;
   }
+}
+
+String statusLabel(String status) {
+  if (status == 'stock_issue') return 'Stock issue';
+  return status.isEmpty ? status : status[0].toUpperCase() + status.substring(1);
 }
 
 class StatusBadge extends StatelessWidget {
@@ -34,7 +41,7 @@ class StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status[0].toUpperCase() + status.substring(1),
+        statusLabel(status),
         style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
       ),
     );

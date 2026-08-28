@@ -59,8 +59,46 @@ class OrdersProvider extends ChangeNotifier {
 
   Future<void> updateStatus(String orderId, String status) async {
     final updated = await _service.updateStatus(orderId, status);
+    _replace(updated);
+  }
+
+  Future<Order> setLineAvailability(String orderId, String itemId, String variantId, String availability) async {
+    final updated = await _service.setLineAvailability(orderId, itemId, variantId, availability);
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Order> setPaymentLink(String orderId, String paymentLink) async {
+    final updated = await _service.setPaymentLink(orderId, paymentLink);
+    _replace(updated);
+    return updated;
+  }
+
+  Future<Order> suggestAlternative(
+    String orderId,
+    String itemId,
+    String variantId, {
+    required String altItemId,
+    required String altVariantId,
+    String specialOffer = '',
+    double? finalPrice,
+  }) async {
+    final updated = await _service.suggestAlternative(
+      orderId,
+      itemId,
+      variantId,
+      altItemId: altItemId,
+      altVariantId: altVariantId,
+      specialOffer: specialOffer,
+      finalPrice: finalPrice,
+    );
+    _replace(updated);
+    return updated;
+  }
+
+  void _replace(Order updated) {
     orders = [
-      for (final o in orders) o.id == orderId ? updated : o,
+      for (final o in orders) o.id == updated.id ? updated : o,
     ];
     notifyListeners();
   }

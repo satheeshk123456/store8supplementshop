@@ -6,8 +6,15 @@ import { Loading, ErrorState } from '../components/StateViews'
 import { formatInr } from '../utils/format'
 import { useCart } from '../context/CartContext'
 
+// Store 8 Customer Price: the one common selling price shown to every visitor, logged in
+// or not — there is no member/login-based pricing anywhere in this store.
 function effectivePrice(v) {
   return v.offer_price != null && v.offer_price < v.price ? v.offer_price : v.price
+}
+
+// MRP is only shown when it's actually set on the variant and higher than the selling price.
+function displayMrp(v, sellingPrice) {
+  return v?.mrp != null && v.mrp > sellingPrice ? v.mrp : null
 }
 
 export default function ItemDetail() {
@@ -40,7 +47,7 @@ export default function ItemDetail() {
   const variant = item.variants.find((v) => v.id === selectedVariantId)
   const maxQty = variant ? Math.min(variant.stock_qty, 20) : 0
   const price = variant ? effectivePrice(variant) : 0
-  const onOffer = variant ? price < variant.price : false
+  const mrp = displayMrp(variant, price)
 
   function handleAddToCart() {
     if (!variant || variant.stock_qty <= 0) return
@@ -92,7 +99,7 @@ export default function ItemDetail() {
                 .filter((v) => v.is_active)
                 .map((v) => {
                   const vPrice = effectivePrice(v)
-                  const vOnOffer = vPrice < v.price
+                  const vMrp = displayMrp(v, vPrice)
                   return (
                     <button
                       key={v.id}
@@ -106,12 +113,12 @@ export default function ItemDetail() {
                     >
                       {v.label}
                       <span className="v-price">
-                        {formatInr(vPrice)}
-                        {vOnOffer && (
-                          <span className="mrp" style={{ marginLeft: 6 }}>
-                            {formatInr(v.price)}
+                        {vMrp && (
+                          <span className="mrp-wrap" style={{ marginRight: 6 }}>
+                            MRP <span className="mrp">{formatInr(vMrp)}</span>
                           </span>
                         )}
+                        {formatInr(vPrice)}
                       </span>
                       <span className="v-stock">{v.stock_qty > 0 ? `${v.stock_qty} in stock` : 'Out of stock'}</span>
                     </button>
@@ -132,12 +139,12 @@ export default function ItemDetail() {
                     </button>
                   </div>
                   <strong>
-                    {formatInr(price * qty)}
-                    {onOffer && (
-                      <span className="mrp" style={{ marginLeft: 8 }}>
-                        {formatInr(variant.price * qty)}
+                    {mrp && (
+                      <span className="mrp-wrap" style={{ marginRight: 8, fontWeight: 500 }}>
+                        MRP <span className="mrp">{formatInr(mrp * qty)}</span>
                       </span>
                     )}
+                    {formatInr(price * qty)}
                   </strong>
                 </div>
 
@@ -164,6 +171,41 @@ export default function ItemDetail() {
             )}
           </div>
         </div>
+
+        {(item.benefits || item.ingredients || item.usage || item.authenticity_info || item.warnings) && (
+          <div className="product-info-blocks">
+            {item.benefits && (
+              <div className="info-block">
+                <h4>Benefits</h4>
+                <p>{item.benefits}</p>
+              </div>
+            )}
+            {item.ingredients && (
+              <div className="info-block">
+                <h4>Ingredients / Nutrition information</h4>
+                <p>{item.ingredients}</p>
+              </div>
+            )}
+            {item.usage && (
+              <div className="info-block">
+                <h4>Recommended usage</h4>
+                <p>{item.usage}</p>
+              </div>
+            )}
+            {item.authenticity_info && (
+              <div className="info-block">
+                <h4>Authenticity</h4>
+                <p>{item.authenticity_info}</p>
+              </div>
+            )}
+            {item.warnings && (
+              <div className="info-block info-block-warning">
+                <h4>Please note</h4>
+                <p>{item.warnings}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {toast && <div className="toast">{toast}</div>}

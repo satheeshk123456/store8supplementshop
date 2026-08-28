@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import WhatsAppButton from './components/WhatsAppButton'
+import SplashScreen from './components/SplashScreen'
 import { CartProvider } from './context/CartContext'
 import Home from './pages/Home'
 import CategoryProducts from './pages/CategoryProducts'
@@ -16,7 +18,33 @@ import OrderConfirmation from './pages/OrderConfirmation'
 import MyOrders from './pages/MyOrders'
 import NotFound from './pages/NotFound'
 
+const SPLASH_SEEN_KEY = 'store8_splash_seen'
+
 export default function App() {
+  // Plays once per browser session (not every page navigation, not every visit) — sessionStorage
+  // clears when the tab/browser closes, so returning visitors in a new session see it again.
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      return sessionStorage.getItem(SPLASH_SEEN_KEY) !== '1'
+    } catch {
+      return true
+    }
+  })
+
+  function dismissSplash() {
+    try {
+      sessionStorage.setItem(SPLASH_SEEN_KEY, '1')
+    } catch {
+      // sessionStorage can throw in private browsing / disabled-storage contexts — non-fatal,
+      // the splash just shows again next time in that case.
+    }
+    setShowSplash(false)
+  }
+
+  if (showSplash) {
+    return <SplashScreen onFinish={dismissSplash} />
+  }
+
   return (
     <CartProvider>
       <Header />

@@ -27,6 +27,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
   late final TextEditingController _ingredients;
   late final TextEditingController _benefits;
   late final TextEditingController _usage;
+  late final TextEditingController _authenticityInfo;
+  late final TextEditingController _warnings;
   String? _productId;
   String? _brandId;
   List<String> _images = [];
@@ -49,6 +51,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     _ingredients = TextEditingController(text: e?.ingredients ?? '');
     _benefits = TextEditingController(text: e?.benefits ?? '');
     _usage = TextEditingController(text: e?.usage ?? '');
+    _authenticityInfo = TextEditingController(text: e?.authenticityInfo ?? '');
+    _warnings = TextEditingController(text: e?.warnings ?? '');
     _productId = e?.productId ?? widget.initialProductId;
     _brandId = e?.brandId;
     _images = List.from(e?.images ?? const []);
@@ -67,6 +71,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
     _ingredients.dispose();
     _benefits.dispose();
     _usage.dispose();
+    _authenticityInfo.dispose();
+    _warnings.dispose();
     for (final v in _variants) {
       v.dispose();
     }
@@ -138,6 +144,8 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
         ingredients: _ingredients.text.trim(),
         benefits: _benefits.text.trim(),
         usage: _usage.text.trim(),
+        authenticityInfo: _authenticityInfo.text.trim(),
+        warnings: _warnings.text.trim(),
         images: _images,
         variants: variants,
         isActive: _active,
@@ -212,6 +220,24 @@ class _ItemFormScreenState extends State<ItemFormScreen> {
             controller: _usage,
             maxLines: 3,
             decoration: const InputDecoration(labelText: 'Usage / how to use (optional)'),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _authenticityInfo,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              labelText: 'Authenticity information (optional)',
+              hintText: 'e.g. Sealed & sourced directly from Optimum Nutrition India',
+            ),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _warnings,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              labelText: 'Warnings (optional)',
+              hintText: 'e.g. Consult a physician before use if pregnant',
+            ),
           ),
           const SizedBox(height: 20),
           const Text('Photos', style: TextStyle(fontWeight: FontWeight.w700)),

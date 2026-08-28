@@ -82,7 +82,8 @@ export default function Cart() {
                 Proceed to checkout
               </button>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 10 }}>
-                No online payment yet — pay on delivery / at pickup. The shop will confirm your order.
+                No payment is taken now. Our Admin team will confirm product availability and the
+                final order details, then share the payment link with you on WhatsApp.
               </p>
             </div>
           </div>

@@ -34,6 +34,40 @@ html, body {
 
 #root { min-height: 100vh; display: flex; flex-direction: column; }
 
+/* ---------- Splash screen ---------- */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+.splash-screen.splash-fade-out { opacity: 0; }
+.splash-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.splash-skip {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 243, 236, 0.4);
+  background: rgba(11, 11, 11, 0.5);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.splash-skip:active { transform: scale(0.96); }
+
 img { max-width: 100%; display: block; }
 
 a { color: inherit; text-decoration: none; }
@@ -293,6 +327,9 @@ button { font-family: inherit; cursor: pointer; }
    item-detail page alike, so it's colour-agnostic (currentColor + opacity) by default. */
 .mrp { text-decoration: line-through; font-weight: 500; opacity: 0.6; font-size: 0.85em; }
 .card-price .mrp { color: var(--ink-muted); font-size: 0.82rem; opacity: 1; }
+/* Wraps the "MRP" label + struck-through value together; the label itself stays un-struck. */
+.mrp-wrap { font-size: 0.78rem; font-weight: 600; opacity: 0.75; letter-spacing: 0.02em; margin-right: 4px; }
+.card-price .price-now { font-weight: 800; }
 
 /* Category card variant (icon based) */
 .category-card { text-align: center; padding: 26px 14px; }
@@ -366,6 +403,11 @@ button { font-family: inherit; cursor: pointer; }
 .variant-pill.selected { border-color: var(--gold); background: rgba(212, 175, 55, 0.14); }
 .variant-pill:disabled { opacity: 0.4; cursor: not-allowed; }
 .variant-pill .v-stock { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+.product-info-blocks { margin-top: 32px; display: grid; gap: 18px; max-width: 780px; }
+.info-block h4 { margin: 0 0 6px; font-size: 0.95rem; color: var(--gold-light); }
+.info-block p { margin: 0; color: var(--text-muted); line-height: 1.55; white-space: pre-line; }
+.info-block-warning h4 { color: var(--danger, #e05252); }
 
 .qty-row { display: flex; align-items: center; gap: 14px; margin: 18px 0; }
 .qty-stepper { display: flex; align-items: center; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 999px; }

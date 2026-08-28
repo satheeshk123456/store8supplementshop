@@ -54,7 +54,10 @@ class _StatusFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filters = [null, ...kOrderStatuses];
+    // stock_issue sits outside the normal pending→delivered progression (it's derived, never
+    // set directly), so it's appended here just for filtering rather than living in
+    // kOrderStatuses, which order_detail_screen.dart also uses to compute "next status" options.
+    final filters = [null, kStockIssueStatus, ...kOrderStatuses];
     return SizedBox(
       height: 52,
       child: ListView.separated(
@@ -66,7 +69,7 @@ class _StatusFilterBar extends StatelessWidget {
           final status = filters[i];
           final selected = ordersProvider.statusFilter == status;
           return ChoiceChip(
-            label: Text(status == null ? 'All' : status[0].toUpperCase() + status.substring(1)),
+            label: Text(status == null ? 'All' : statusLabel(status)),
             selected: selected,
             onSelected: (_) => ordersProvider.setStatusFilter(status),
             selectedColor: AppColors.gold.withValues(alpha: 0.22),

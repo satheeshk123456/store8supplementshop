@@ -137,6 +137,10 @@ export default function Checkout() {
                 <span>Total</span>
                 <span>{formatInr(subtotal)}</span>
               </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 10 }}>
+                No payment is taken now. Our Admin team will confirm product availability and the
+                final order details, then share the payment link with you on WhatsApp.
+              </p>
             </div>
           </div>
         </div>

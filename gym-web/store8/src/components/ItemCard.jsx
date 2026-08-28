@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { formatInr } from '../utils/format'
 
+// Store 8 Customer Price: the one common selling price shown to every visitor, logged in
+// or not — there is no member/login-based pricing anywhere in this store.
 function effectivePrice(v) {
   return v.offer_price != null && v.offer_price < v.price ? v.offer_price : v.price
 }
@@ -11,7 +13,10 @@ export default function ItemCard({ item }) {
     ? activeVariants.reduce((a, b) => (effectivePrice(b) < effectivePrice(a) ? b : a))
     : null
   const inStock = activeVariants.some((v) => v.stock_qty > 0)
-  const onOffer = cheapest ? effectivePrice(cheapest) < cheapest.price : false
+  const customerPrice = cheapest ? effectivePrice(cheapest) : null
+  // MRP is only shown when it's actually set and higher than the selling price — otherwise
+  // there's nothing meaningful to strike through.
+  const mrp = cheapest?.mrp != null && cheapest.mrp > customerPrice ? cheapest.mrp : null
 
   return (
     <Link to={`/item/${item.id}`} className="card">
@@ -29,8 +34,12 @@ export default function ItemCard({ item }) {
         <div className="card-price">
           {cheapest ? (
             <>
-              From {formatInr(effectivePrice(cheapest))}
-              {onOffer && <span className="mrp">{formatInr(cheapest.price)}</span>}
+              {mrp && (
+                <span className="mrp-wrap">
+                  MRP <span className="mrp">{formatInr(mrp)}</span>
+                </span>
+              )}
+              <span className="price-now">From {formatInr(customerPrice)}</span>
             </>
           ) : (
             'Price unavailable'
