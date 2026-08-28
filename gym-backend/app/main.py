@@ -11,7 +11,18 @@ from slowapi.errors import RateLimitExceeded
 from app.config import get_settings
 from app.firebase import init_firebase
 from app.rate_limit import limiter
-from app.routers import admin_meta, brands, categories, device_tokens, items, orders, products, search, uploads
+from app.routers import (
+    admin_meta,
+    brands,
+    categories,
+    customers,
+    device_tokens,
+    items,
+    orders,
+    products,
+    search,
+    uploads,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("store8")
@@ -89,6 +100,7 @@ app.include_router(products.router)
 app.include_router(items.router)
 app.include_router(search.router)
 app.include_router(orders.router)
+app.include_router(customers.router)
 app.include_router(device_tokens.router)
 app.include_router(uploads.router)
 app.include_router(admin_meta.router)

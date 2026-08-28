@@ -198,6 +198,11 @@ class CustomerIn(BaseModel):
 class OrderCreate(BaseModel):
     customer: CustomerIn
     lines: list[OrderLineIn] = Field(min_length=1, max_length=50)
+    # Set only when the customer is logged in (optional account system — see customers.py).
+    # Guest checkout never sends this, and the endpoint works exactly the same either way; it
+    # just lets a logged-in customer's orders show up under "My Account" later without them
+    # having to re-enter the order number + phone every time.
+    customer_uid: str | None = None
 
 
 class OrderLineAlternative(BaseModel):
@@ -252,6 +257,7 @@ class Order(BaseModel):
     payment_status: str = "not_required"
     payment_link: str | None = None
     notified: bool = False
+    customer_uid: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
 
@@ -285,6 +291,34 @@ class AlternativeSuggestionIn(BaseModel):
 class AlternativeResponseIn(BaseModel):
     phone: str = Field(min_length=8, max_length=15)
     accept: bool
+
+
+# ---------- Customers (optional login) ----------
+# Pricing note: a customer account changes NOTHING about price. Every visitor — logged in or
+# not — sees the same MRP + common Store 8 Customer Price on every product. Logging in only
+# unlocks an order-history view; it is never looked at when computing what an order costs.
+class CustomerProfileIn(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    phone: str = Field(default="", max_length=15)
+
+    @field_validator("phone")
+    @classmethod
+    def digits_only(cls, v: str):
+        if not v:
+            return v
+        cleaned = "".join(ch for ch in v if ch.isdigit() or ch == "+")
+        if len(cleaned) < 8:
+            raise ValueError("Enter a valid phone number")
+        return cleaned
+
+
+class CustomerProfile(BaseModel):
+    uid: str
+    name: str = ""
+    phone: str = ""
+    email: str = ""
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 # ---------- Device tokens ----------

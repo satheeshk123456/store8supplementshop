@@ -3,7 +3,7 @@ import { respondToAlternative, submitLineChoice, trackOrder } from '../api/order
 import { formatInr } from '../utils/format'
 import { forgetOrder, getRememberedOrders, rememberOrder } from '../utils/myOrdersStorage'
 
-const STATUS_LABEL = {
+export const STATUS_LABEL = {
   pending: 'Order received',
   confirmed: 'Confirmed',
   packed: 'Packed',
@@ -15,7 +15,7 @@ const STATUS_LABEL = {
   stock_issue: 'Checking stock',
 }
 
-const STATUS_COLOR = {
+export const STATUS_COLOR = {
   pending: 'var(--text-muted)',
   confirmed: 'var(--gold-light)',
   packed: 'var(--gold-light)',
@@ -30,7 +30,7 @@ const CHOICE_CONFIRMATION = {
   suggest_alternative: "Got it — our team will suggest an alternative on WhatsApp shortly.",
 }
 
-function AlternativeSuggestionCard({ orderNumber, phone, line, onResolved }) {
+export function AlternativeSuggestionCard({ orderNumber, phone, line, onResolved }) {
   const [submitting, setSubmitting] = useState(false)
   const [localError, setLocalError] = useState('')
   const alt = line.alternative
@@ -94,7 +94,7 @@ function AlternativeSuggestionCard({ orderNumber, phone, line, onResolved }) {
   )
 }
 
-function UnavailableLineBanner({ orderNumber, phone, line, onResolved }) {
+export function UnavailableLineBanner({ orderNumber, phone, line, onResolved }) {
   const [submitting, setSubmitting] = useState(false)
   const [localError, setLocalError] = useState('')
 
@@ -161,7 +161,7 @@ function UnavailableLineBanner({ orderNumber, phone, line, onResolved }) {
   )
 }
 
-function StatusPill({ status }) {
+export function StatusPill({ status }) {
   return (
     <span
       style={{

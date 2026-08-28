@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../api/orders'
+import { getMyProfile } from '../api/customers'
 import { formatInr } from '../utils/format'
 import { rememberOrder } from '../utils/myOrdersStorage'
 
@@ -9,11 +11,38 @@ const EMPTY_FORM = { name: '', phone: '', address: '', city: '', pincode: '', no
 
 export default function Checkout() {
   const { lines, subtotal, clear } = useCart()
+  const { user, getToken } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
+
+  // Convenience only — a logged-in customer's saved name/phone pre-fill the checkout form so
+  // they don't have to retype it every time. Nothing here changes what guest checkout does or
+  // what price anyone is charged; login/profile data is never used for pricing.
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    async function prefill() {
+      try {
+        const token = await getToken()
+        const profile = await getMyProfile(token)
+        if (cancelled) return
+        setForm((f) => ({
+          ...f,
+          name: f.name || profile.name || user.displayName || '',
+          phone: f.phone || profile.phone || '',
+        }))
+      } catch {
+        // Non-fatal — checkout still works with a blank form if this fails.
+      }
+    }
+    prefill()
+    return () => {
+      cancelled = true
+    }
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function validate() {
     const e = {}
@@ -30,9 +59,11 @@ export default function Checkout() {
     if (!validate()) return
     setSubmitting(true)
     try {
+      const customerUid = user ? user.uid : null
       const order = await createOrder({
         customer: form,
         lines: lines.map((l) => ({ item_id: l.itemId, variant_id: l.variantId, qty: l.qty })),
+        customer_uid: customerUid,
       })
       clear()
       rememberOrder(order.order_number, form.phone.trim())

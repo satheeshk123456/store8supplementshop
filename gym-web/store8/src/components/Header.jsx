@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import logoMark from '../assets/brand/logo-mark.png'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function Header() {
   const { count } = useCart()
+  const { isLoggedIn, loading } = useAuth()
   return (
     <header className="site-header">
       <div className="container">
@@ -24,6 +26,11 @@ export default function Header() {
           <Link to="/my-orders" className="header-link">
             My Orders
           </Link>
+          {!loading && (
+            <Link to={isLoggedIn ? '/account' : '/login'} className="header-link">
+              {isLoggedIn ? 'My Account' : 'Login'}
+            </Link>
+          )}
           <Link to="/cart" className="cart-link" aria-label="Cart">
             <span>🛒</span>
             <span>Cart</span>
