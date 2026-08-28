@@ -57,6 +57,10 @@ class Brand(BrandIn):
 class ProductIn(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     category_ids: list[str] = Field(default_factory=list)
+    # Free-text grouping shown within a category page (e.g. "Protein Powders" inside "Muscle
+    # Building & Protein") — optional and unstructured on purpose, so the shop can introduce
+    # subcategories gradually without needing a whole separate admin screen for them.
+    subcategory: str = Field(default="", max_length=80)
     description: str = Field(default="", max_length=1000)
     unit_kind: UnitKind = "weight"
     is_active: bool = True
@@ -80,10 +84,20 @@ class VariantIn(BaseModel):
     unit: Unit
     value: float = Field(gt=0)
     mrp: float | None = Field(default=None, ge=0)
-    price: float = Field(ge=0)
+    price: float = Field(ge=0)  # Store 8's regular selling price
+    # Optional promotional price, shown struck-through against `price` when set and lower than
+    # it — left unset (None) until the shop actually runs an offer on a given size.
+    offer_price: float | None = Field(default=None, ge=0)
     stock_qty: int = Field(default=0, ge=0)
     sku: str = Field(default="", max_length=60)
     is_active: bool = True
+
+    @field_validator("offer_price")
+    @classmethod
+    def offer_must_beat_price(cls, v, info):
+        if v is not None and "price" in info.data and v > info.data["price"]:
+            raise ValueError("Offer price can't be higher than the regular price")
+        return v
 
 
 class Variant(VariantIn):
@@ -97,6 +111,11 @@ class ItemIn(BaseModel):
     title: str = Field(default="", max_length=150)
     flavor: str = Field(default="", max_length=60)
     description: str = Field(default="", max_length=1000)
+    # All three optional and free-text on purpose — filled in gradually per product, not
+    # required to create a listing (label/price/stock matter far more for launch than these).
+    ingredients: str = Field(default="", max_length=2000)
+    benefits: str = Field(default="", max_length=2000)
+    usage: str = Field(default="", max_length=1000)
     images: list[str] = Field(default_factory=list)
     variants: list[VariantIn] = Field(default_factory=list)
     is_active: bool = True
@@ -117,6 +136,9 @@ class Item(BaseModel):
     title: str = ""
     flavor: str = ""
     description: str = ""
+    ingredients: str = ""
+    benefits: str = ""
+    usage: str = ""
     images: list[str] = Field(default_factory=list)
     variants: list[Variant] = Field(default_factory=list)
     is_active: bool = True

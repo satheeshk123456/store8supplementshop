@@ -38,6 +38,33 @@ def list_items_for_product(product_id: str):
     return [_with_variant_labels(doc_to_dict(d)) for d in docs]
 
 
+@router.get("/brands/{brand_id}/items", response_model=list[Item])
+def list_items_for_brand(brand_id: str):
+    """Public: reverse browse — pick a brand first, see everything Store 8 carries for it."""
+    db = get_db()
+    docs = (
+        db.collection(COLLECTION)
+        .where(filter=firestore.FieldFilter("is_active", "==", True))
+        .where(filter=firestore.FieldFilter("brand_id", "==", brand_id))
+        .stream()
+    )
+    return [_with_variant_labels(doc_to_dict(d)) for d in docs]
+
+
+@router.get("/featured-items", response_model=list[Item])
+def list_featured_items():
+    """Public: homepage 'featured products' strip — items the admin has flagged is_featured."""
+    db = get_db()
+    docs = (
+        db.collection(COLLECTION)
+        .where(filter=firestore.FieldFilter("is_active", "==", True))
+        .where(filter=firestore.FieldFilter("is_featured", "==", True))
+        .limit(12)
+        .stream()
+    )
+    return [_with_variant_labels(doc_to_dict(d)) for d in docs]
+
+
 @router.get("/items/{item_id}", response_model=Item)
 def get_item(item_id: str):
     """Public: step 4 — variant/size picker for one brand's product."""

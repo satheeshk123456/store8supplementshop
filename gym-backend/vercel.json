@@ -7,7 +7,7 @@
   },
   "env": {
     "ENV": "production",
-    "CORS_ORIGINS": "https://store-8-tech.web.app",
-    "FIREBASE_STORAGE_BUCKET": "store-8-tech.firebasestorage.app"
+    "CORS_ORIGINS": "https://store8-tech.web.app",
+    "FIREBASE_STORAGE_BUCKET": "store8-tech.firebasestorage.app"
   }
 }

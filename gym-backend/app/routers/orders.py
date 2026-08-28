@@ -45,6 +45,36 @@ def create_order(request: Request, payload: OrderCreate):
     return doc_to_dict(order_ref.get())
 
 
+@router.get("/orders/track", response_model=Order)
+@limiter.limit("15/minute")
+def track_order(request: Request, order_number: str, phone: str):
+    """
+    Public: look up a single order by order_number + the phone number given at checkout — both
+    together act as a shared secret so a stranger can't browse other customers' orders just by
+    guessing an id (see the comment in the frontend's OrderConfirmation page for why order-by-id
+    alone was deliberately avoided). Used for the storefront's "My Orders" / order tracking page.
+    """
+    db = get_db()
+    cleaned_number = order_number.strip().upper()
+    docs = (
+        db.collection(COLLECTION)
+        .where(filter=firestore.FieldFilter("order_number", "==", cleaned_number))
+        .limit(1)
+        .get()
+    )
+    if not docs:
+        raise HTTPException(404, "No order found with that order number and phone number.")
+    doc = docs[0]
+    order = doc.to_dict()
+    stored_digits = "".join(ch for ch in order.get("customer", {}).get("phone", "") if ch.isdigit())
+    given_digits = "".join(ch for ch in phone if ch.isdigit())
+    # Compare the last 8 digits rather than requiring an exact full-string match, so trivial
+    # formatting differences (+91 prefix, spaces, a leading 0) don't wrongly reject a real match.
+    if len(given_digits) < 8 or stored_digits[-8:] != given_digits[-8:]:
+        raise HTTPException(404, "No order found with that order number and phone number.")
+    return doc_to_dict(doc)
+
+
 def _merge_duplicate_lines(lines: list[OrderLineIn]) -> list[OrderLineIn]:
     merged: dict[tuple[str, str], int] = {}
     order: list[tuple[str, str]] = []
@@ -97,7 +127,13 @@ def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate) -> 
         new_variants[idx]["stock_qty"] = variant["stock_qty"] - line.qty
         variant_updates.append((ref, new_variants))
 
-        line_subtotal = round(variant["price"] * line.qty, 2)
+        # Charge the offer price when the admin has set one (and it's actually lower than the
+        # regular price — the schema validator already guarantees that at write time, this is
+        # just a defensive re-check since we're reading raw dict data here, not a validated model).
+        offer_price = variant.get("offer_price")
+        effective_price = offer_price if offer_price is not None and offer_price < variant["price"] else variant["price"]
+
+        line_subtotal = round(effective_price * line.qty, 2)
         subtotal += line_subtotal
         order_lines.append(
             {
@@ -108,7 +144,7 @@ def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate) -> 
                 "variant_label": format_variant_label(variant["unit"], variant["value"]),
                 "unit": variant["unit"],
                 "qty": line.qty,
-                "price": variant["price"],
+                "price": effective_price,
                 "subtotal": line_subtotal,
             }
         )
