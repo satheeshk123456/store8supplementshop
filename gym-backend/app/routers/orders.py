@@ -342,6 +342,9 @@ def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate) -> 
         "payment_status": "not_required",
         "payment_link": None,
         "notified": False,
+        # None for guest checkout, unchanged. Set only when the storefront had a logged-in
+        # customer session at checkout time — see the optional account system in customers.py.
+        "customer_uid": payload.customer_uid,
         "created_at": firestore.SERVER_TIMESTAMP,
         "updated_at": firestore.SERVER_TIMESTAMP,
     }

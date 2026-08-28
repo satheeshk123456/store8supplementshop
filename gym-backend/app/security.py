@@ -56,3 +56,49 @@ def get_current_admin(authorization: str | None = Header(default=None)) -> Curre
         name=data.get("name", ""),
         role=data.get("role", "staff"),
     )
+
+
+"""
+Customer auth (optional login/registration on the storefront): unlike admins, there's no
+allow-list collection to additionally check — anyone can register a Firebase Auth account and
+immediately use it, same as any normal e-commerce login. It exists purely so a customer can see
+their own order history under their own account; guest checkout (order_number + phone,
+see routers/orders.py) keeps working exactly as before and is completely unaffected by this.
+"""
+
+
+class CurrentCustomer:
+    def __init__(self, uid: str, email: str):
+        self.uid = uid
+        self.email = email
+
+
+def _verify_customer_token(authorization: str | None) -> dict | None:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    token = authorization.split(" ", 1)[1].strip()
+    try:
+        return firebase_auth.verify_id_token(token, check_revoked=True)
+    except Exception:
+        return None
+
+
+def get_current_customer(authorization: str | None = Header(default=None)) -> CurrentCustomer:
+    """Required: raises 401 if there's no valid, logged-in customer session."""
+    decoded = _verify_customer_token(authorization)
+    if decoded is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Please log in to continue",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return CurrentCustomer(uid=decoded["uid"], email=decoded.get("email", ""))
+
+
+def get_current_customer_optional(authorization: str | None = Header(default=None)) -> CurrentCustomer | None:
+    """Optional: returns None (never raises) when there's no/invalid token — for endpoints that
+    behave the same for guests and logged-in customers but want to know which one it is."""
+    decoded = _verify_customer_token(authorization)
+    if decoded is None:
+        return None
+    return CurrentCustomer(uid=decoded["uid"], email=decoded.get("email", ""))
