@@ -1,6 +1,6 @@
 // Single shared HTTP layer — every request in the app goes through here so the base URL,
 // error handling and JSON parsing only live in one place.
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://gymbackendorg.vercel.app'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 class ApiError extends Error {
   constructor(message, status, detail) {

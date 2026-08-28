@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://store-8-tech.web.app/sitemap.xml
+Sitemap: https://store8-tech.web.app/sitemap.xml
