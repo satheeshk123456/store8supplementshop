@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../auth/auth_provider.dart';
 import '../catalog/screens/catalog_home_screen.dart';
+import '../offers/screens/offers_screen.dart';
 import '../orders/orders_provider.dart';
 import '../orders/screens/orders_screen.dart';
 import 'account_screen.dart';
@@ -43,7 +44,7 @@ class _DashboardShellState extends State<DashboardShell> {
     final admin = context.watch<AuthProvider>().profile;
     final pending = context.watch<OrdersProvider>().pendingCount;
 
-    final screens = const [OrdersScreen(), CatalogHomeScreen(), AccountScreen()];
+    final screens = const [OrdersScreen(), CatalogHomeScreen(), OffersScreen(), AccountScreen()];
 
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),
@@ -64,6 +65,11 @@ class _DashboardShellState extends State<DashboardShell> {
             icon: Icon(Icons.category_outlined),
             activeIcon: Icon(Icons.category),
             label: 'Catalogue',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.local_offer_outlined),
+            activeIcon: Icon(Icons.local_offer),
+            label: 'Offers',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.person_outline),

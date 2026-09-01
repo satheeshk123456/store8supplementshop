@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { respondToAlternative, submitLineChoice, trackOrder } from '../api/orders'
 import { formatInr } from '../utils/format'
 import { forgetOrder, getRememberedOrders, rememberOrder } from '../utils/myOrdersStorage'
+import { useAuth } from '../context/AuthContext'
 
 export const STATUS_LABEL = {
   pending: 'Order received',
@@ -291,10 +293,20 @@ function OrderRow({ orderNumber, phone, onGone }) {
 }
 
 export default function MyOrders() {
+  const { user, loading: authLoading } = useAuth()
+  const navigate = useNavigate()
   const [remembered, setRemembered] = useState([])
   const [form, setForm] = useState({ orderNumber: '', phone: '' })
   const [lookupError, setLookupError] = useState('')
   const [lookingUp, setLookingUp] = useState(false)
+
+  // Login is now required to place and view orders — a logged-in customer's order history
+  // lives on the Account page (see Account.jsx). This page stays around only so someone who
+  // placed an order as a guest before this change can still track it with their order number
+  // + phone, the same way they always could.
+  useEffect(() => {
+    if (!authLoading && user) navigate('/account', { replace: true })
+  }, [authLoading, user, navigate])
 
   useEffect(() => {
     setRemembered(getRememberedOrders())
@@ -326,12 +338,30 @@ export default function MyOrders() {
     }
   }
 
+  if (authLoading || user) return null
+
   return (
     <section className="section">
       <div className="container">
         <div className="section-title">
           <h2>My Orders</h2>
         </div>
+
+        <div
+          className="cart-summary"
+          style={{ maxWidth: 420, margin: '0 auto 24px', textAlign: 'center' }}
+        >
+          <p style={{ margin: '0 0 10px', color: 'var(--text)' }}>
+            Log in to place new orders and see your full order history under your account.
+          </p>
+          <Link to="/login" className="btn btn-gold btn-sm">
+            Log in / Create account
+          </Link>
+        </div>
+
+        <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.82rem', marginBottom: 24 }}>
+          Placed an order as a guest before? Look it up below with your order number and phone.
+        </p>
 
         {remembered.length > 0 ? (
           <div style={{ maxWidth: 520, margin: '0 auto 32px' }}>

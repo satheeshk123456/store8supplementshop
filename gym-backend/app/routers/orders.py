@@ -17,7 +17,7 @@ from app.schemas import (
     PaymentLinkIn,
     format_variant_label,
 )
-from app.security import get_current_admin
+from app.security import CurrentCustomer, get_current_admin, get_current_customer
 from app.utils import doc_to_dict, new_order_number
 
 router = APIRouter(tags=["orders"])
@@ -27,11 +27,12 @@ logger = logging.getLogger("store8")
 
 @router.post("/orders", response_model=Order, status_code=201)
 @limiter.limit("6/minute")
-def create_order(request: Request, payload: OrderCreate):
+def create_order(request: Request, payload: OrderCreate, customer: CurrentCustomer = Depends(get_current_customer)):
     """
-    Public: guest checkout, no login, no payment yet (payment_status stays "not_required").
-    Stock is checked and decremented atomically inside a Firestore transaction so two
-    customers can't both "win" the last unit of something.
+    Login required: the client asked for guest checkout to be removed, so placing an order
+    (and later viewing it — see /customers/me/orders) now needs a logged-in account. No payment
+    yet either way (payment_status stays "not_required"). Stock is checked and decremented
+    atomically inside a Firestore transaction so two customers can't both "win" the last unit.
     """
     db = get_db()
     order_ref = db.collection(COLLECTION).document()
@@ -41,7 +42,7 @@ def create_order(request: Request, payload: OrderCreate):
     payload.lines = _merge_duplicate_lines(payload.lines)
 
     transaction = db.transaction()
-    order_data = _run_order_transaction(transaction, db, order_ref, payload)
+    order_data = _run_order_transaction(transaction, db, order_ref, payload, customer.uid)
 
     ok = False
     try:
@@ -268,7 +269,7 @@ def _merge_duplicate_lines(lines: list[OrderLineIn]) -> list[OrderLineIn]:
 
 
 @firestore.transactional
-def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate) -> dict:
+def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate, customer_uid: str) -> dict:
     # 1) READS — must all happen before any writes in a Firestore transaction.
     item_refs, item_snaps = [], []
     for line in payload.lines:
@@ -342,9 +343,9 @@ def _run_order_transaction(transaction, db, order_ref, payload: OrderCreate) -> 
         "payment_status": "not_required",
         "payment_link": None,
         "notified": False,
-        # None for guest checkout, unchanged. Set only when the storefront had a logged-in
-        # customer session at checkout time — see the optional account system in customers.py.
-        "customer_uid": payload.customer_uid,
+        # Always set now — login is required to place an order (see create_order above). The
+        # uid comes from the verified Firebase ID token, never from client-supplied data.
+        "customer_uid": customer_uid,
         "created_at": firestore.SERVER_TIMESTAMP,
         "updated_at": firestore.SERVER_TIMESTAMP,
     }

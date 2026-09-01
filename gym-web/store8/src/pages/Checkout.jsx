@@ -11,16 +11,22 @@ const EMPTY_FORM = { name: '', phone: '', address: '', city: '', pincode: '', no
 
 export default function Checkout() {
   const { lines, subtotal, clear } = useCart()
-  const { user, getToken } = useAuth()
+  const { user, loading: authLoading, getToken } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState('')
 
-  // Convenience only — a logged-in customer's saved name/phone pre-fill the checkout form so
-  // they don't have to retype it every time. Nothing here changes what guest checkout does or
-  // what price anyone is charged; login/profile data is never used for pricing.
+  // Login is required to place an order — browsing and the cart stay open to everyone, but
+  // checkout itself needs an account (see gym-backend's create_order). Send them to log in and
+  // bring them straight back here afterwards; the cart is in localStorage so nothing is lost.
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/login', { state: { from: '/checkout' } })
+  }, [authLoading, user, navigate])
+
+  // A logged-in customer's saved name/phone pre-fill the checkout form so they don't have to
+  // retype it every time. Nothing here changes what price anyone is charged.
   useEffect(() => {
     if (!user) return
     let cancelled = false
@@ -59,12 +65,14 @@ export default function Checkout() {
     if (!validate()) return
     setSubmitting(true)
     try {
-      const customerUid = user ? user.uid : null
-      const order = await createOrder({
-        customer: form,
-        lines: lines.map((l) => ({ item_id: l.itemId, variant_id: l.variantId, qty: l.qty })),
-        customer_uid: customerUid,
-      })
+      const token = await getToken()
+      const order = await createOrder(
+        {
+          customer: form,
+          lines: lines.map((l) => ({ item_id: l.itemId, variant_id: l.variantId, qty: l.qty })),
+        },
+        token,
+      )
       clear()
       rememberOrder(order.order_number, form.phone.trim())
       navigate(`/order-confirmed/${order.id}`, { state: { order } })
@@ -74,6 +82,8 @@ export default function Checkout() {
       setSubmitting(false)
     }
   }
+
+  if (authLoading || !user) return null
 
   if (lines.length === 0) {
     navigate('/cart')

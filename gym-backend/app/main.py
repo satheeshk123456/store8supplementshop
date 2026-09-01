@@ -18,6 +18,7 @@ from app.routers import (
     customers,
     device_tokens,
     items,
+    offers,
     orders,
     products,
     search,
@@ -100,6 +101,7 @@ app.include_router(products.router)
 app.include_router(items.router)
 app.include_router(search.router)
 app.include_router(orders.router)
+app.include_router(offers.router)
 app.include_router(customers.router)
 app.include_router(device_tokens.router)
 app.include_router(uploads.router)

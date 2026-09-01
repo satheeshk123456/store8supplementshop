@@ -105,10 +105,6 @@ export default function Register() {
             <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
               Already have an account? <Link to="/login">Log in</Link>
             </p>
-            <p style={{ textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Don't want to log in? You can still{' '}
-              <Link to="/checkout">checkout as a guest</Link>.
-            </p>
           </form>
         </div>
       </div>

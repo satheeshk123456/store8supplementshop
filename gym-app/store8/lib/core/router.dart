@@ -8,6 +8,7 @@ import '../features/catalog/screens/category_form_screen.dart';
 import '../features/catalog/screens/item_form_screen.dart';
 import '../features/catalog/screens/product_form_screen.dart';
 import '../features/dashboard/dashboard_shell.dart';
+import '../features/offers/screens/offer_form_screen.dart';
 import '../features/orders/screens/order_detail_screen.dart';
 
 GoRouter buildRouter(AuthProvider auth) {
@@ -56,6 +57,11 @@ GoRouter buildRouter(AuthProvider auth) {
       GoRoute(
         path: '/catalog/item/:id/edit',
         builder: (context, state) => ItemFormScreen(itemId: state.pathParameters['id']),
+      ),
+      GoRoute(path: '/offers/new', builder: (context, state) => const OfferFormScreen()),
+      GoRoute(
+        path: '/offers/:id/edit',
+        builder: (context, state) => OfferFormScreen(offerId: state.pathParameters['id']),
       ),
     ],
   );

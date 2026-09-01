@@ -59,15 +59,26 @@ def update_my_profile(payload: CustomerProfileIn, customer: CurrentCustomer = De
 @router.get("/orders", response_model=list[Order])
 def list_my_orders(customer: CurrentCustomer = Depends(get_current_customer)):
     """Order history for the logged-in customer — every order they placed while logged in
-    (customer_uid was attached at checkout, see routers/orders.py's create_order). Orders placed
-    as a guest, before they had an account, still only show up via the order-number + phone
-    tracker on the storefront's My Orders page, same as always."""
+    (customer_uid was attached at checkout, see routers/orders.py's create_order), always
+    reflecting whatever the admin app has most recently set (status, payment link, etc.) since
+    this reads straight from Firestore on every call — no caching. Orders placed as a guest,
+    before they had an account, still only show up via the order-number + phone tracker on the
+    storefront's My Orders page, same as always.
+
+    Deliberately a single-field `where` with NO `order_by` here: combining a filter on one field
+    with sorting on another needs a Firestore *composite* index, which doesn't exist until
+    someone manually creates it from a link Firestore prints in the error the first time this
+    query runs — that would silently 500 this endpoint (and so "my orders" on the website) for
+    everyone until a developer notices and clicks that link. Sorting the (small, capped) result
+    in Python instead needs no index at all and never breaks on a fresh project.
+    """
     db = get_db()
     docs = (
         db.collection("orders")
         .where(filter=firestore.FieldFilter("customer_uid", "==", customer.uid))
-        .order_by("created_at", direction=firestore.Query.DESCENDING)
         .limit(100)
         .stream()
     )
-    return [doc_to_dict(d) for d in docs]
+    orders = [doc_to_dict(d) for d in docs]
+    orders.sort(key=lambda o: o.get("created_at") or "", reverse=True)
+    return orders
