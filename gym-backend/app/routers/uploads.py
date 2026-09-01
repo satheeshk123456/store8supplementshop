@@ -18,7 +18,7 @@ async def upload(folder: str, file: UploadFile = File(...), admin=Depends(get_cu
     `folder` is a simple label like "products" or "brands", just to organize the Storage
     bucket — it does not affect access control.
     """
-    if folder not in {"products", "brands", "categories"}:
+    if folder not in {"products", "brands", "categories", "offers"}:
         raise HTTPException(400, "Invalid upload folder")
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(415, "Only JPEG, PNG or WEBP images are allowed")

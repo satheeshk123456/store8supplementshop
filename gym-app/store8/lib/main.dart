@@ -18,6 +18,8 @@ import 'features/auth/auth_provider.dart';
 import 'features/catalog/catalog_provider.dart';
 import 'features/catalog/catalog_service.dart';
 import 'features/notifications/notification_service.dart';
+import 'features/offers/offers_provider.dart';
+import 'features/offers/offers_service.dart';
 import 'features/orders/orders_provider.dart';
 import 'features/orders/orders_service.dart';
 import 'firebase_options.dart';
@@ -90,9 +92,11 @@ class _Store8AdminAppState extends State<Store8AdminApp> {
         Provider.value(value: widget.notificationService),
         Provider(create: (_) => CatalogService(widget.apiClient)),
         Provider(create: (_) => OrdersService(widget.apiClient)),
+        Provider(create: (_) => OffersService(widget.apiClient)),
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (ctx) => CatalogProvider(ctx.read<CatalogService>())),
         ChangeNotifierProvider(create: (ctx) => OrdersProvider(ctx.read<OrdersService>())),
+        ChangeNotifierProvider(create: (ctx) => OffersProvider(ctx.read<OffersService>())),
       ],
       child: MaterialApp.router(
         title: 'Store 8 Admin',

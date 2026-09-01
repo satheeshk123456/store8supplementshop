@@ -119,6 +119,38 @@ button { font-family: inherit; cursor: pointer; }
 .btn-block { width: 100%; }
 .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
 
+/* ---------- Offers banner ---------- */
+.offers-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
+  padding: 8px 16px;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.06));
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  font-size: 0.82rem;
+  text-align: center;
+  justify-content: center;
+}
+
+.offers-banner-item {
+  color: var(--gold-light);
+  text-decoration: none;
+}
+
+.offers-banner-title {
+  font-weight: 700;
+}
+
+.offers-banner-desc {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+a.offers-banner-item:hover {
+  text-decoration: underline;
+}
+
 /* ---------- Header ---------- */
 .site-header {
   position: sticky;

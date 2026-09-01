@@ -196,13 +196,12 @@ class CustomerIn(BaseModel):
 
 
 class OrderCreate(BaseModel):
+    # NOTE: login is now required to place an order (see routers/orders.py's create_order,
+    # which depends on get_current_customer) — the client no longer sends who's ordering as a
+    # uid; the backend takes that from the verified Firebase ID token instead, since trusting a
+    # client-supplied uid here would let anyone attach an order to someone else's account.
     customer: CustomerIn
     lines: list[OrderLineIn] = Field(min_length=1, max_length=50)
-    # Set only when the customer is logged in (optional account system — see customers.py).
-    # Guest checkout never sends this, and the endpoint works exactly the same either way; it
-    # just lets a logged-in customer's orders show up under "My Account" later without them
-    # having to re-enter the order number + phone every time.
-    customer_uid: str | None = None
 
 
 class OrderLineAlternative(BaseModel):
@@ -291,6 +290,28 @@ class AlternativeSuggestionIn(BaseModel):
 class AlternativeResponseIn(BaseModel):
     phone: str = Field(min_length=8, max_length=15)
     accept: bool
+
+
+# ---------- Offers (admin-posted banners shown at the top of the storefront) ----------
+# Purely marketing/announcement content — e.g. "🎁 Diwali combo offer — ask our team on
+# WhatsApp". This is completely separate from the per-order special-offer/alternative-product
+# system in OrderLineAlternative above: that one is a one-off price override admin sets on a
+# specific order, this one is just a banner everybody sees. Neither ever changes MRP or the
+# common Store 8 Customer Price shown on a product.
+class OfferIn(BaseModel):
+    title: str = Field(min_length=2, max_length=120)
+    description: str = Field(default="", max_length=300)
+    image: str = Field(default="", max_length=500)
+    # Optional — e.g. a WhatsApp chat link or a link to a specific product/category page.
+    link: str = Field(default="", max_length=300)
+    order: int = Field(default=0, ge=0, le=999)
+    is_active: bool = True
+
+
+class Offer(OfferIn):
+    id: str
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 # ---------- Customers (optional login) ----------

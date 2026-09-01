@@ -1,6 +1,9 @@
 import { api } from './client'
 
-export const createOrder = (payload) => api.post('/orders', payload)
+// Login is required to place an order (see gym-backend's create_order) — `token` is the
+// caller's current Firebase ID token, always present since Checkout.jsx gates on being logged
+// in before this is ever called.
+export const createOrder = (payload, token) => api.post('/orders', payload, { token })
 
 export const trackOrder = (orderNumber, phone) =>
   api.get(`/orders/track?order_number=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`)
