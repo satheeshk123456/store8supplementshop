@@ -12,15 +12,20 @@ COLLECTION = "offers"
 @router.get("/offers", response_model=list[Offer])
 def list_offers():
     """Public: active offer banners for the strip shown at the top of the storefront, in the
-    order the admin set. Purely marketing copy — never changes MRP/price on any product."""
+    order the admin set. Purely marketing copy — never changes MRP/price on any product.
+
+    Filters on `is_active` and sorts on `order` in Python rather than asking Firestore to sort
+    (i.e. no `.order_by()` on the query) — combining a filter on one field with a sort on
+    another needs a Firestore composite index, and this collection doesn't have one declared
+    (see firestore.indexes.json). Without this, the very first real request 500s until someone
+    notices and manually creates that index from a link buried in the server error — same class
+    of bug already fixed once for /customers/me/orders, avoided here the same way.
+    """
     db = get_db()
-    docs = (
-        db.collection(COLLECTION)
-        .where(filter=firestore.FieldFilter("is_active", "==", True))
-        .order_by("order")
-        .stream()
-    )
-    return [doc_to_dict(d) for d in docs]
+    docs = db.collection(COLLECTION).where(filter=firestore.FieldFilter("is_active", "==", True)).stream()
+    offers = [doc_to_dict(d) for d in docs]
+    offers.sort(key=lambda o: o.get("order", 0))
+    return offers
 
 
 @router.get("/admin/offers", response_model=list[Offer])
