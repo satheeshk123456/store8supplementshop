@@ -11,11 +11,22 @@ router = APIRouter(prefix="/customers/me", tags=["customers"])
 logger = logging.getLogger("store8")
 
 
+def _to_profile_dict(doc) -> dict:
+    """CustomerProfile.uid is the Firestore document id for this collection (we always write it
+    at db.collection("customers").document(customer.uid) — see below) — but doc_to_dict() adds
+    an "id" key, not "uid" (every other model in this app uses "id"; CustomerProfile is the one
+    exception). Left as plain doc_to_dict() output, response_model=CustomerProfile validation
+    fails on the missing required "uid" field and FastAPI turns that into a 500."""
+    data = doc_to_dict(doc)
+    data["uid"] = data.pop("id")
+    return data
+
+
 def _get_or_create_profile(db, customer: CurrentCustomer) -> dict:
     ref = db.collection("customers").document(customer.uid)
     snap = ref.get()
     if snap.exists:
-        return doc_to_dict(snap)
+        return _to_profile_dict(snap)
     # First time this uid has ever called an authenticated endpoint (e.g. right after they
     # registered) — create a minimal profile automatically so GET never 404s for a real account.
     data = {
@@ -26,7 +37,7 @@ def _get_or_create_profile(db, customer: CurrentCustomer) -> dict:
         "updated_at": firestore.SERVER_TIMESTAMP,
     }
     ref.set(data)
-    return doc_to_dict(ref.get())
+    return _to_profile_dict(ref.get())
 
 
 @router.get("", response_model=CustomerProfile)
@@ -53,7 +64,7 @@ def update_my_profile(payload: CustomerProfileIn, customer: CurrentCustomer = De
     else:
         update["created_at"] = firestore.SERVER_TIMESTAMP
         ref.set(update)
-    return doc_to_dict(ref.get())
+    return _to_profile_dict(ref.get())
 
 
 @router.get("/orders", response_model=list[Order])
