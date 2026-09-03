@@ -103,7 +103,7 @@ class _OrderCard extends StatelessWidget {
                     child: Text(order.orderNumber,
                         style: const TextStyle(fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
                   ),
-                  StatusBadge(status: order.status),
+                  StatusBadge(status: order.status, paymentStatus: order.paymentStatus),
                 ],
               ),
               const SizedBox(height: 6),

@@ -5,16 +5,33 @@ import { formatInr } from '../utils/format'
 import { forgetOrder, getRememberedOrders, rememberOrder } from '../utils/myOrdersStorage'
 import { useAuth } from '../context/AuthContext'
 
-export const STATUS_LABEL = {
-  pending: 'Order received',
-  confirmed: 'Confirmed',
-  packed: 'Packed',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-  // Set automatically once the admin's physical-stock check finds a line that can't be
-  // fulfilled — see the per-line banner below, which is where the customer responds.
-  stock_issue: 'Checking stock',
+// The client asked for a more descriptive status list (Order Received → Stock Checking →
+// Admin Confirmation Pending → Confirmed → Payment Pending → Payment Received → Processing →
+// Shipped → Delivered) than the backend actually tracks as distinct statuses. Rather than
+// adding real new order-status values (a bigger, riskier change touching the backend, both
+// apps, and every status-driven code path), this only relabels what's already tracked — the
+// existing `status` value plus the existing `payment_status` field — to read the way the
+// client asked for. No new state is introduced; see the Flutter app's status_badge.dart for
+// the same relabeling on the admin side.
+export function statusLabel(status, paymentStatus) {
+  switch (status) {
+    case 'pending':
+      return 'Order Received'
+    case 'confirmed':
+      return paymentStatus === 'link_shared' ? 'Confirmed — Payment Pending' : 'Confirmed'
+    case 'packed':
+      return 'Processing'
+    case 'shipped':
+      return 'Shipped / Ready for Delivery'
+    case 'delivered':
+      return 'Delivered'
+    case 'cancelled':
+      return 'Cancelled'
+    case 'stock_issue':
+      return 'Out of Stock — Action Needed'
+    default:
+      return status
+  }
 }
 
 export const STATUS_COLOR = {
@@ -163,7 +180,7 @@ export function UnavailableLineBanner({ orderNumber, phone, line, onResolved }) 
   )
 }
 
-export function StatusPill({ status }) {
+export function StatusPill({ status, paymentStatus }) {
   return (
     <span
       style={{
@@ -176,7 +193,7 @@ export function StatusPill({ status }) {
         whiteSpace: 'nowrap',
       }}
     >
-      {STATUS_LABEL[status] || status}
+      {statusLabel(status, paymentStatus)}
     </span>
   )
 }
@@ -237,7 +254,7 @@ function OrderRow({ orderNumber, phone, onGone }) {
     <div className="cart-summary" style={{ marginBottom: 16, textAlign: 'left' }}>
       <div className="summary-row" style={{ alignItems: 'center' }}>
         <span style={{ fontWeight: 700, color: 'var(--gold-light)' }}>{order.order_number}</span>
-        <StatusPill status={order.status} />
+        <StatusPill status={order.status} paymentStatus={order.payment_status} />
       </div>
       {order.created_at && (
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '4px 0 12px' }}>

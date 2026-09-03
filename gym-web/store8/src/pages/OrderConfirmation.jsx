@@ -1,21 +1,21 @@
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { formatInr } from '../utils/format'
 
 export default function OrderConfirmation() {
-  const { orderId } = useParams()
   const { state } = useLocation()
   const order = state?.order
 
   // Order details only ever come from the just-placed response (never fetched by id later —
   // that would let anyone who guesses an order id read another customer's name/phone/address).
+  // On a refresh/reopen, `state` is gone — there's no internal id worth showing here either:
+  // it isn't the order number and can't be used to track anything (My Orders needs the order
+  // number + phone), so showing it just gives someone a dead reference to copy around. Point
+  // straight at where the order actually lives instead.
   if (!order) {
     return (
       <section className="section">
         <div className="container center">
           <h2>Thanks — your order was placed</h2>
-          <p style={{ color: 'var(--text-muted)' }}>
-            Order reference: <strong>{orderId}</strong>
-          </p>
           <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>
             Your order has been received. Our Admin team will confirm product availability and the
             final order details. Once confirmed, the payment link will be shared with you on
@@ -26,8 +26,9 @@ export default function OrderConfirmation() {
             summary for your privacy.
           </p>
           <p style={{ color: 'var(--text-muted)' }}>
-            This order is saved under <Link to="/my-orders" style={{ color: 'var(--gold-light)' }}>My Orders</Link> on
-            this device, where you can check its current status any time.
+            This order is saved under{' '}
+            <Link to="/account" style={{ color: 'var(--gold-light)' }}>My Account</Link>, where you
+            can check its current status any time.
           </p>
           <Link to="/" className="btn btn-gold">
             Continue shopping
@@ -65,7 +66,7 @@ export default function OrderConfirmation() {
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
           You can check this order's current status any time under{' '}
-          <Link to="/my-orders" style={{ color: 'var(--gold-light)' }}>My Orders</Link>.
+          <Link to="/account" style={{ color: 'var(--gold-light)' }}>My Account</Link>.
         </p>
 
         <Link to="/" className="btn btn-gold">
