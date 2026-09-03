@@ -118,7 +118,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            StatusBadge(status: order.status),
+            StatusBadge(status: order.status, paymentStatus: order.paymentStatus),
             if (!order.notified)
               const Tooltip(
                 message: "The push notification for this order may not have been delivered",

@@ -10,7 +10,7 @@ function AccountOrderCard({ order, phone, onResolved }) {
     <div className="cart-summary" style={{ marginBottom: 16, textAlign: 'left' }}>
       <div className="summary-row" style={{ alignItems: 'center' }}>
         <span style={{ fontWeight: 700, color: 'var(--gold-light)' }}>{order.order_number}</span>
-        <StatusPill status={order.status} />
+        <StatusPill status={order.status} paymentStatus={order.payment_status} />
       </div>
       {order.created_at && (
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '4px 0 12px' }}>
